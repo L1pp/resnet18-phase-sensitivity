@@ -1,0 +1,6 @@
+period,target_frequency_cycles_per_pixel,target_bin,target_bin_frequency_cycles_per_pixel,raw_target_bin_fft_magnitude_px,target_bin_amplitude_px,noise_floor_median_amplitude_px_excluding_target_bin,target_bin_noise_ratio,preprocessing
+2,0.5,80,0.5,0.293147280536155,0.007374774353110816,0.01599840018572513,0.46096948866744164,linear_detrend_then_hann; exact target bin; DC excluded
+4,0.25,40,0.25,4.143054675377461,0.1042277905755336,0.0150193763196328,6.939555169097847,linear_detrend_then_hann; exact target bin; DC excluded
+8,0.125,20,0.125,1.7777468755327144,0.04472319183730098,0.0150193763196328,2.977699665121274,linear_detrend_then_hann; exact target bin; DC excluded
+16,0.0625,10,0.0625,2.0463020692229055,0.05147929733894101,0.0150193763196328,3.4275256337807503,linear_detrend_then_hann; exact target bin; DC excluded
+32,0.03125,5,0.03125,1.623050095165424,0.04083144893497922,0.0150193763196328,2.718584851063741,linear_detrend_then_hann; exact target bin; DC excluded

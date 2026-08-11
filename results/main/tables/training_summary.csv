@@ -1,0 +1,4 @@
+variant,best_epoch,best_val_mse
+baseline,10.0,0.00017874908560231603
+antialias,20.0,4.239838402515297e-06
+no_gap,17.0,9.796675397938314e-06
