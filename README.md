@@ -221,8 +221,10 @@ The formal pilot uses 2,000 frozen training images, 256 validation images, and 5
 python quadratic_bezier_minimal_experiment.py all --profile smoke
 
 # Formal small-data pilot
-python quadratic_bezier_minimal_experiment.py all --profile minimal
+python quadratic_bezier_minimal_experiment.py all --profile minimal --force
 ```
+
+The formal command uses `--force` because curated lightweight reports already ship in the repository; it intentionally regenerates the local NPZ/checkpoint and replaces the local report copies. Without `--force`, individual stages refuse to overwrite completed results. NPZ files, checkpoints, and smoke outputs remain ignored by Git.
 
 ### Results
 

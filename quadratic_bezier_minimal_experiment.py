@@ -256,9 +256,13 @@ def prepare(profile: str = "minimal", force: bool = False) -> Dict[str, Any]:
     if manifest_path.exists() and not force:
         existing = json.loads(manifest_path.read_text(encoding="utf-8"))
         if existing.get("fingerprint") == fingerprint(spec):
-            print(f"[prepare] cache ready: {d['root']}")
-            return existing
-        raise RuntimeError("existing manifest fingerprint differs; use --force")
+            cache_paths = [d["data"] / f"{split}.npz" for split in SPLITS]
+            if all(path.exists() for path in cache_paths):
+                print(f"[prepare] cache ready: {d['root']}")
+                return existing
+            print(f"[prepare] manifest exists but local NPZ cache is incomplete; rebuilding {d['data']}")
+        else:
+            raise RuntimeError("existing manifest fingerprint differs; use --force")
     for path in d.values():
         path.mkdir(parents=True, exist_ok=True)
     (d["config"] / "config.json").write_text(json.dumps({**config(spec), "fingerprint": fingerprint(spec)}, indent=2), encoding="utf-8")

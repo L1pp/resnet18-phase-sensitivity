@@ -222,8 +222,10 @@ Hole 的绝对 MAE 比 ID 低 0.559 px，但它的常数基线本身容易 31.6%
 python quadratic_bezier_minimal_experiment.py all --profile smoke
 
 # 小数据正式 pilot
-python quadratic_bezier_minimal_experiment.py all --profile minimal
+python quadratic_bezier_minimal_experiment.py all --profile minimal --force
 ```
+
+正式命令使用 `--force`，是因为仓库已经包含精选的轻量报告；该命令会有意重建本地 NPZ/checkpoint，并替换本地报告副本。不使用 `--force` 时，各阶段会拒绝覆盖已经完成的结果。NPZ、checkpoint 和 smoke 输出仍由 Git 忽略。
 
 ### 结果
 
