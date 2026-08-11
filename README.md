@@ -5,6 +5,8 @@ English | [简体中文](README_CN.md)
 
 This repository contains a small, reproducible PyTorch experiment using a synthetic coordinate-regression task with a “white short line on a black background.” It tests whether the stride/downsampling operations in standard `torchvision.models.resnet18(weights=None)` introduce translation phase sensitivity, and whether coordinate errors show periods of 2/4/8/16/32 pixels.
 
+It also contains an independent cubic Bézier geometry-inversion experiment that tests how well the same standard ResNet18, original GAP, and a single linear head recover eight continuous control-point coordinates, including off-canvas controls and held-out/OOD parameter regions.
+
 The repository includes the complete experiment scripts and selected CSV/PNG results. Generated data, model checkpoints, and other large files are not tracked by Git.
 
 ## Questions
@@ -42,7 +44,7 @@ The script generates the data in advance and freezes it in a local NPZ file; no 
 
 ## Running the experiment
 
-Requirements are Python, PyTorch, torchvision, NumPy, and Matplotlib. The experiment was run with Python 3.12, PyTorch 2.12.0, and torchvision 0.27.0; CUDA is used automatically when available.
+Requirements are Python, PyTorch, torchvision, NumPy, Matplotlib, and Pillow. The experiment was run with Python 3.12, PyTorch 2.12.0, and torchvision 0.27.0; CUDA is used automatically when available.
 
 ```powershell
 python -m pip install -r requirements.txt
@@ -136,6 +138,78 @@ No stage is strictly equivariant to the 1 px shift; the largest difference appea
 - Anti-aliasing clearly improves convergence speed under the limited training budget and translation stability in early features, but it does not uniformly remove all P16/P32 components.
 - Removing GAP is easier to optimize within 20 epochs, but standard GAP is not a fundamental obstacle to precise localization; capacity-matched controls are still needed.
 
+## Cubic Bézier geometry inversion
+
+`bezier_inverse_experiment.py` is independent of the phase-sensitivity experiment and writes only below `results/bezier_inverse/`. A cubic curve is rendered from four control points and the model regresses all eight normalized coordinates. The model is exactly `torchvision.models.resnet18(weights=None)` with its original `AdaptiveAvgPool2d((1,1))`; only `fc` is replaced by `Linear(512, 8)`, without a sigmoid.
+
+### Dataset and protocol
+
+| Item | Setting |
+|---|---|
+| Raster | 224×224 grayscale, 4× supersampling, 256-point polyline, LANCZOS downsampling |
+| Train / validation | 8,000 / 1,000 frozen samples |
+| ID / Hole / Extra tests | 1,000 samples each |
+| Endpoint support | `P0,P3 ∈ (0.15,0.85)^2`, canonical `P0.x < P3.x`, horizontal gap ≥ 0.20 |
+| Control support | Train/val/ID: `P1,P2 ∈ [-0.25,1.25]^2` |
+| Hole | `P1.x ∈ [0.35,0.55] AND P2.y ∈ [0.45,0.65]`, excluded from train/val/ID |
+| Extra | At least one P1/P2 coordinate in `[-0.40,-0.25)` or `(1.25,1.40]` |
+| Visibility | Arc-length-weighted visible fraction ≥ 0.65 |
+| Training | AdamW, LR `1e-3`, weight decay `1e-4`, batch 64, SmoothL1 beta 0.02, at most 30 epochs |
+
+All five splits are generated offline with seed `20260810`. Exact parameter and raster hashes are checked across splits. The smoke profile exercises the complete renderer/training/analysis/Jacobian pipeline with 500 training samples and 2 epochs.
+
+```powershell
+# Full smoke pipeline
+python bezier_inverse_experiment.py all --profile smoke
+
+# Formal run, kept as explicit stages
+python bezier_inverse_experiment.py prepare --profile full
+python bezier_inverse_experiment.py train --profile full
+python bezier_inverse_experiment.py analyze --profile full
+python bezier_inverse_experiment.py identifiability --profile full
+```
+
+The frozen NPZ files and checkpoints remain local and are excluded by `.gitignore`. CSV/JSON metadata, predictions, metrics, identifiability results, and PNG figures are under `results/bezier_inverse/full/`.
+
+### Formal single-seed results
+
+The best validation checkpoint occurred at epoch 30, with validation coordinate MAE `7.47 px`. Test metrics use full-precision inference. The train-mean constant baseline is included because the Hole subset has a narrower and intrinsically easier target distribution.
+
+| Split | MAE normalized | MAE px | RMSE px | Endpoint MAE | Control MAE | Curve RMSE | Train-mean baseline | Model / baseline |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| ID | 0.0339 | 7.551 | 12.783 | 3.484 | 11.618 | 5.081 | 57.724 | 0.131 |
+| Hole OOD | 0.0314 | 6.992 | 11.866 | 3.038 | 10.946 | 4.993 | 39.484 | 0.177 |
+| Extra OOD | 0.0491 | 10.939 | 18.197 | 4.343 | 17.535 | 6.878 | 69.570 | 0.157 |
+
+The model recovers meaningful continuous geometry and beats a train-mean predictor by 82–87%, but it does not recover all eight parameters at uniformly high precision. On ID data, control-point error is 3.33× endpoint error. Extra OOD increases total MAE by 3.388 px (44.9%) and control MAE by 5.917 px (50.9%) relative to ID.
+
+The raw Hole MAE is 0.559 px lower than ID, but its constant baseline is 31.6% easier. Relative to that baseline, Hole retains 17.7% of baseline error versus 13.1% for ID. The held-out combination therefore generalizes in absolute terms, but it is not evidence that the Hole causes no generalization cost.
+
+Off-canvas controls are not harder in this visibility-filtered dataset: point-level outside-control MAE is 10.980 px versus 12.490 px for inside controls on ID. The same direction appears for Hole and Extra. This likely reflects selection/geometry differences rather than a universal advantage for off-canvas controls. In contrast, the coordinates that actually exceed the training support in Extra OOD have 21.249 px MAE, and only 50.3% of predictions cross the correct low/high support boundary. Continuous extrapolation is therefore weak and unreliable.
+
+![Bézier training history](results/bezier_inverse/full/figures/training_history.png)
+
+![Bézier ID/Hole/Extra metrics](results/bezier_inverse/full/figures/metrics_overview.png)
+
+![Bézier prediction overlays](results/bezier_inverse/full/figures/curve_overlay.png)
+
+### Raster-Jacobian identifiability
+
+For 200 samples from each test split, central finite differences use `delta = 0.75/223` per coordinate. Each sample accumulates an 8×8 float64 `J^T J`; no full Jacobian is saved. All 600 sampled Jacobians have numerical rank 8.
+
+| Split | Pearson: log sigma_min vs error | Spearman | Pearson: log condition vs error | Spearman | Median condition |
+|---|---:|---:|---:|---:|---:|
+| ID | -0.135 | -0.069 | 0.335 | 0.380 | 9.21 |
+| Hole | -0.198 | -0.153 | 0.368 | 0.341 | 9.01 |
+| Extra | -0.103 | -0.175 | 0.248 | 0.404 | 9.63 |
+| Pooled | -0.044 | -0.019 | 0.321 | 0.390 | 9.24 |
+
+Higher condition number is moderately associated with larger model error, while `sigma_min` alone has only a weak relationship. Mean control-coordinate Jacobian column sensitivity is about 63–69% of endpoint sensitivity, consistent with control points being less directly observable, but the model's control error is much more than this sensitivity ratio alone explains. The present evidence supports a mixed explanation: raster geometry/conditioning contributes, while model/optimization limitations remain important.
+
+This Jacobian measures local renderer observability, not the neural network's Jacobian and not global uniqueness. A small delta check at 0.5/0.75/1.0 px preserved sample rankings reasonably well (Spearman about 0.74–0.90), but the study remains a one-seed, one-renderer, one-curve-family experiment.
+
+![Condition number versus prediction error](results/bezier_inverse/full/figures/identifiability_condition_error.png)
+
 ## Evidence limits
 
 This is an exploratory experiment with one seed, one horizontal line, one line length/y position, and a fixed 224×224 resolution. Stronger mechanistic or general claims would at least require:
@@ -152,10 +226,12 @@ This is an exploratory experiment with one seed, one horizontal line, one line l
 .
 ├── resnet_phase_experiment.py
 ├── supplemental_baseline_long.py
+├── bezier_inverse_experiment.py
 ├── requirements.txt
 ├── results/
 │   ├── main/                 # Three-model 20-epoch analysis and equivariance results
-│   └── baseline_60ep/        # Extended baseline training results
+│   ├── baseline_60ep/        # Extended baseline training results
+│   └── bezier_inverse/       # Independent smoke/full Bézier inverse results
 ├── LICENSE
 ├── README.md
 └── README_CN.md

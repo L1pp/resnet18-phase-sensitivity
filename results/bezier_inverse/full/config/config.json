@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "seed": 20260810,
+  "profile": {
+    "name": "full",
+    "train_count": 8000,
+    "val_count": 1000,
+    "test_count": 1000,
+    "epochs": 30,
+    "batch_size": 64,
+    "patience": 5,
+    "identifiability_count": 200
+  },
+  "image_size": 224,
+  "supersample": 4,
+  "resampling": "LANCZOS",
+  "stroke_width": 3.0,
+  "curve_samples": 256,
+  "visible_threshold": 0.65,
+  "canonical": {
+    "p0x_less_than_p3x": true,
+    "minimum_x_gap": 0.2,
+    "endpoint_coordinate_range_strict": [
+      0.15,
+      0.85
+    ],
+    "canonicalize_reverse_control_order": true
+  },
+  "target_names": [
+    "p0x",
+    "p0y",
+    "p1x",
+    "p1y",
+    "p2x",
+    "p2y",
+    "p3x",
+    "p3y"
+  ],
+  "test_splits": [
+    "test_id",
+    "test_hole",
+    "test_extra"
+  ],
+  "model": {
+    "name": "torchvision.resnet18",
+    "weights": null,
+    "keep_avgpool": true,
+    "head": "Linear(512, 8)",
+    "sigmoid": false
+  },
+  "optimizer": {
+    "name": "AdamW",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "scheduler": "ReduceLROnPlateau",
+    "scheduler_patience": 2
+  },
+  "loss": {
+    "name": "SmoothL1Loss",
+    "beta": 0.02
+  },
+  "amp": true,
+  "early_stopping": {
+    "patience": 5,
+    "min_delta": 1e-05,
+    "min_epochs": 10
+  },
+  "generation": {
+    "train_val_exclude_hole": true,
+    "id_independent": true,
+    "strict_hole_and_extra": true,
+    "visible_fraction_is_arc_length_weighted": true,
+    "p0_p3_support": [
+      0.15,
+      0.85
+    ],
+    "p1_p2_train_val_id_support": [
+      -0.25,
+      1.25
+    ],
+    "hole_definition": "p1x in [0.35,0.55] AND p2y in [0.45,0.65]",
+    "extra_definition": "any P1/P2 coordinate in [-0.40,-0.25) or (1.25,1.40]"
+  },
+  "fingerprint": "2a2654d7183bc050b950"
+}

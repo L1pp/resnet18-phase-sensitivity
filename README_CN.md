@@ -6,6 +6,8 @@
 这是一个可复现的小型 PyTorch 实验，用合成的“黑底白色短线”坐标回归任务，检查标准
 `torchvision.models.resnet18(weights=None)` 的 stride/downsampling 是否会引入平移相位敏感性，以及坐标误差是否出现 2/4/8/16/32 像素周期。
 
+仓库还包含一个完全独立的三次 Bézier 几何反演实验，用同一个标准 ResNet18、原始 GAP 和单层线性 head，从 raster 图像恢复 8 个连续控制点坐标，并检查画布外控制点、参数空间挖洞和超出训练范围时的泛化能力。
+
 仓库包含完整实验脚本和精选 CSV/PNG 结果；生成数据、模型 checkpoint 和其他大文件不纳入 Git。
 
 ## 要回答的问题
@@ -43,7 +45,7 @@
 
 ## 运行方法
 
-要求 Python、PyTorch、torchvision、NumPy 和 Matplotlib。实验实测环境为 Python 3.12、PyTorch 2.12.0、torchvision 0.27.0；有 CUDA 时自动使用 CUDA。
+要求 Python、PyTorch、torchvision、NumPy、Matplotlib 和 Pillow。实验实测环境为 Python 3.12、PyTorch 2.12.0、torchvision 0.27.0；有 CUDA 时自动使用 CUDA。
 
 ```powershell
 python -m pip install -r requirements.txt
@@ -137,6 +139,78 @@ baseline 的 detrended residue mean peak-to-peak：
 - Anti-alias 明显改善有限训练预算下的收敛速度以及早期 feature 的平移稳定性，但没有统一消除所有 P16/P32 成分。
 - 去掉 GAP 在 20 epoch 下更容易优化，但标准 GAP 并非精确定位的根本障碍；容量匹配对照仍然必要。
 
+## 三次 Bézier 几何反演
+
+`bezier_inverse_experiment.py` 与相位敏感性实验完全独立，只写入 `results/bezier_inverse/`。输入是四个控制点生成的三次 Bézier raster，输出是 8 个 normalized 坐标。模型严格使用 `torchvision.models.resnet18(weights=None)`，保留原始 `AdaptiveAvgPool2d((1,1))`，只把 `fc` 改成 `Linear(512, 8)`，不使用 sigmoid。
+
+### 数据与训练协议
+
+| 项目 | 设置 |
+|---|---|
+| Raster | 224×224 灰度图，4× supersampling、256 点 polyline、LANCZOS 下采样 |
+| Train / validation | 8,000 / 1,000 个冻结样本 |
+| ID / Hole / Extra test | 各 1,000 个样本 |
+| 端点支持 | `P0,P3 ∈ (0.15,0.85)^2`，canonical `P0.x < P3.x`，水平间距 ≥ 0.20 |
+| 控制点支持 | Train/val/ID：`P1,P2 ∈ [-0.25,1.25]^2` |
+| Hole | `P1.x ∈ [0.35,0.55] AND P2.y ∈ [0.45,0.65]`，从 train/val/ID 排除 |
+| Extra | 至少一个 P1/P2 坐标位于 `[-0.40,-0.25)` 或 `(1.25,1.40]` |
+| 可见性 | 弧长加权 visible fraction ≥ 0.65 |
+| 训练 | AdamW、LR `1e-3`、weight decay `1e-4`、batch 64、SmoothL1 beta 0.02、最多 30 epoch |
+
+五个 split 都用固定 seed `20260810` 离线生成；脚本检查跨 split 的精确参数哈希和 raster 哈希。Smoke profile 用 500 个训练样本和 2 个 epoch 检查 renderer、训练、评估、PNG 和 Jacobian 全流程。
+
+```powershell
+# 完整 smoke 流程
+python bezier_inverse_experiment.py all --profile smoke
+
+# 正式实验分阶段运行
+python bezier_inverse_experiment.py prepare --profile full
+python bezier_inverse_experiment.py train --profile full
+python bezier_inverse_experiment.py analyze --profile full
+python bezier_inverse_experiment.py identifiability --profile full
+```
+
+冻结 NPZ 和 checkpoint 保留在本地并由 `.gitignore` 排除；CSV/JSON metadata、预测、指标、可识别性结果和 PNG 位于 `results/bezier_inverse/full/`。
+
+### 正式单 seed 结果
+
+验证集最佳 checkpoint 出现在 epoch 30，validation coordinate MAE 为 `7.47 px`。测试指标使用全精度推理。因为 Hole 子集的目标分布更窄、更容易，表中同时给出 train-mean 常数基线。
+
+| Split | MAE normalized | MAE px | RMSE px | Endpoint MAE | Control MAE | Curve RMSE | Train-mean baseline | Model / baseline |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| ID | 0.0339 | 7.551 | 12.783 | 3.484 | 11.618 | 5.081 | 57.724 | 0.131 |
+| Hole OOD | 0.0314 | 6.992 | 11.866 | 3.038 | 10.946 | 4.993 | 39.484 | 0.177 |
+| Extra OOD | 0.0491 | 10.939 | 18.197 | 4.343 | 17.535 | 6.878 | 69.570 | 0.157 |
+
+模型能够恢复有意义的连续几何，相比 train-mean predictor 降低 82–87% 的误差；但 8 个参数没有达到统一的高精度。ID 中 control-point error 是 endpoint error 的 3.33 倍。Extra OOD 相比 ID 的总 MAE 增加 3.388 px（44.9%），control MAE 增加 5.917 px（50.9%）。
+
+Hole 的绝对 MAE 比 ID 低 0.559 px，但它的常数基线本身容易 31.6%。相对基线看，Hole 仍保留 17.7% 的基线误差，而 ID 只保留 13.1%。因此，这个未见过的连续组合在绝对误差上可以泛化，但不能据此说 Hole 完全没有泛化代价。
+
+在这个经过可见比例筛选的数据分布中，画布外控制点并没有更难：ID 的 point-level outside-control MAE 为 10.980 px，inside-control 为 12.490 px；Hole 和 Extra 也呈相同方向。这更可能来自筛选和几何分布差异，而不是画布外控制点普遍更容易。另一方面，Extra 中真正超出训练支持区间的坐标 MAE 为 21.249 px，只有 50.3% 的预测越过了正确的低端/高端支持边界。因此，连续几何外推能力较弱且不可靠。
+
+![Bézier training history](results/bezier_inverse/full/figures/training_history.png)
+
+![Bézier ID/Hole/Extra metrics](results/bezier_inverse/full/figures/metrics_overview.png)
+
+![Bézier prediction overlays](results/bezier_inverse/full/figures/curve_overlay.png)
+
+### Raster Jacobian 局部可识别性
+
+对每个测试 split 随机取 200 个样本，central finite difference 使用 `delta = 0.75/223`。每个样本只累计一个 float64 的 8×8 `J^T J`，不保存完整 Jacobian。600 个样本的 Jacobian 数值秩全部为 8。
+
+| Split | Pearson：log sigma_min vs error | Spearman | Pearson：log condition vs error | Spearman | Median condition |
+|---|---:|---:|---:|---:|---:|
+| ID | -0.135 | -0.069 | 0.335 | 0.380 | 9.21 |
+| Hole | -0.198 | -0.153 | 0.368 | 0.341 | 9.01 |
+| Extra | -0.103 | -0.175 | 0.248 | 0.404 | 9.63 |
+| Pooled | -0.044 | -0.019 | 0.321 | 0.390 | 9.24 |
+
+条件数越高，模型误差总体呈中等程度上升；`sigma_min` 单独与误差的关系较弱。控制点坐标 Jacobian column sensitivity 平均只有端点的约 63–69%，与控制点更难直接观测的事实一致；但模型 control error 的增幅远大于这一个敏感度比例能够解释的程度。因此当前证据更支持混合解释：raster 几何条件性确实贡献了一部分，模型/优化能力限制仍然重要。
+
+这里的 Jacobian 衡量 renderer 的局部可观测性，不是神经网络 Jacobian，也不证明全局唯一性。对 0.5/0.75/1.0 px 的小型 delta 核查中，样本排序保持得较稳定（Spearman 约 0.74–0.90），但整个实验仍然只有一个 seed、一个 renderer 和一种曲线族。
+
+![Condition number versus prediction error](results/bezier_inverse/full/figures/identifiability_condition_error.png)
+
 ## 证据边界
 
 这是单 seed、单条水平线、单一长度/y 位置和固定 224×224 分辨率的探索性实验。要形成更强的机制或普适结论，至少还应补充：
@@ -153,10 +227,12 @@ baseline 的 detrended residue mean peak-to-peak：
 .
 ├── resnet_phase_experiment.py
 ├── supplemental_baseline_long.py
+├── bezier_inverse_experiment.py
 ├── requirements.txt
 ├── results/
 │   ├── main/                 # 三模型 20 epoch 分析和等变性结果
-│   └── baseline_60ep/        # baseline 延长训练结果
+│   ├── baseline_60ep/        # baseline 延长训练结果
+│   └── bezier_inverse/       # 独立 smoke/full Bézier 反演结果
 ├── LICENSE
 ├── README.md
 └── README_CN.md

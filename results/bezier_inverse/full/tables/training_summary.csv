@@ -1,0 +1,2 @@
+profile,fingerprint,epochs_completed,best_epoch,best_val_smooth_l1,device,amp
+full,2a2654d7183bc050b950,30,30,0.025382033944129943,cuda,True
