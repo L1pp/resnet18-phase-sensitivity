@@ -1,0 +1,2 @@
+samples,finite_condition_samples,delta_normalized,delta_px,rank_deficient,condition_infinite,sigma_min_median,condition_median,condition_p90,log_sigma_min_error_pearson,log_sigma_min_error_spearman,log_condition_error_pearson,log_condition_error_spearman
+64,64,0.0033632286995515697,0.75,0,0,1.0371688435158903,7.721586872228069,11.131019325832929,-0.06295963796335445,-0.02225274725274725,0.1496086622353015,0.029807692307692302

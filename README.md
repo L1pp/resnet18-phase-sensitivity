@@ -210,6 +210,47 @@ This Jacobian measures local renderer observability, not the neural network's Ja
 
 ![Condition number versus prediction error](results/bezier_inverse/full/figures/identifiability_condition_error.png)
 
+## Minimal quadratic Bézier identifiability test
+
+`quadratic_bezier_minimal_experiment.py` is a smaller follow-up designed to separate two questions that the cubic/OOD experiment cannot answer by itself: whether a clean raster locally determines the control points, and whether a small standard ResNet18 run learns that inverse map. Here “quadratic” means a 2D quadratic Bézier with three points `P0,P1,P2` and six normalized coordinates.
+
+The formal pilot uses 2,000 frozen training images, 256 validation images, and 512 independent test images. All controls are inside the canvas: `P0,P2 ∈ (0.15,0.85)^2`, `P1 ∈ [0.10,0.90]^2`, canonical `P0.x < P2.x`, horizontal endpoint gap at least 0.35, and P1-to-chord distance at least 0.08. This deliberately removes off-canvas, OOD, near-linear, and visibility confounds. Rasterization remains 224×224, 4× supersampled, and LANCZOS-downsampled. The network is still `resnet18(weights=None)` with the original GAP and only `fc=Linear(512,6)`.
+
+```powershell
+# One-epoch end-to-end smoke test
+python quadratic_bezier_minimal_experiment.py all --profile smoke
+
+# Formal small-data pilot
+python quadratic_bezier_minimal_experiment.py all --profile minimal
+```
+
+### Results
+
+The 20-epoch checkpoint gives the following 512-sample test errors:
+
+| Metric | Error |
+|---|---:|
+| All six coordinates MAE | 5.063 px |
+| Endpoints P0/P2 MAE | 2.850 px |
+| Interior control P1 MAE | 9.488 px |
+| P1x / P1y MAE | 8.706 / 10.271 px |
+| Same-t curve-coordinate RMSE | 5.015 px |
+| Re-rendered image MAE, intensity [0,1] | 0.01395 |
+
+The best validation loss occurs at epoch 20, the final epoch, while both training and validation errors are still falling. These numbers are therefore a training-budget pilot, not an estimate of the converged architecture limit.
+
+The renderer-level tests are much more favorable. All 64 sampled 6×6 finite-difference Jacobians have rank 6. The median condition number is 7.72 and p90 is 11.13. Changing the finite-difference displacement from 0.75 px to 0.5 or 1.0 px produces no rank changes; the `sigma_min` ranking Spearman correlations are 0.885 and 0.859, and condition-number ranking correlations are 0.956 and 0.965.
+
+A separate local inverse-rendering check uses 16 samples and four truth-neighborhood initializations spanning approximately 2–20 px. Selecting the lowest-raster-loss restart gives control MAE mean 0.992 px, median 0.887 px, and p90 1.420 px. Endpoint and P1 means are 0.974 and 1.028 px; 62.5% of samples reach at most 1 px control MAE. However, the mean solution dispersion across restarts is 17.52 px, so this is evidence for local observability, not a blind global inverse or proof of global uniqueness.
+
+On the 64 Jacobian samples, neither `log(sigma_min)` nor `log(condition)` explains much of the ResNet error: Spearman correlations are -0.022 and 0.030. Under this restricted distribution, the large gap between local inverse-rendering error (~1 px) and ResNet P1 error (9.49 px) therefore points more strongly to learning/optimization/representation limits than to local raster non-identifiability. It does not isolate GAP as the cause, and the final-epoch best checkpoint makes longer training the next required control.
+
+![Quadratic training history](results/quadratic_bezier_minimal/minimal/figures/loss_mae.png)
+
+![Quadratic control-point predictions](results/quadratic_bezier_minimal/minimal/figures/overlay.png)
+
+![Quadratic identifiability correlations](results/quadratic_bezier_minimal/minimal/figures/identifiability_vs_error.png)
+
 ## Evidence limits
 
 This is an exploratory experiment with one seed, one horizontal line, one line length/y position, and a fixed 224×224 resolution. Stronger mechanistic or general claims would at least require:
@@ -227,11 +268,13 @@ This is an exploratory experiment with one seed, one horizontal line, one line l
 ├── resnet_phase_experiment.py
 ├── supplemental_baseline_long.py
 ├── bezier_inverse_experiment.py
+├── quadratic_bezier_minimal_experiment.py
 ├── requirements.txt
 ├── results/
 │   ├── main/                 # Three-model 20-epoch analysis and equivariance results
 │   ├── baseline_60ep/        # Extended baseline training results
-│   └── bezier_inverse/       # Independent smoke/full Bézier inverse results
+│   ├── bezier_inverse/       # Independent smoke/full cubic Bézier inverse results
+│   └── quadratic_bezier_minimal/ # Minimal quadratic Bézier identifiability pilot
 ├── LICENSE
 ├── README.md
 └── README_CN.md

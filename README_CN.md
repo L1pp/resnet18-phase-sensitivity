@@ -211,6 +211,47 @@ Hole 的绝对 MAE 比 ID 低 0.559 px，但它的常数基线本身容易 31.6%
 
 ![Condition number versus prediction error](results/bezier_inverse/full/figures/identifiability_condition_error.png)
 
+## 二次 Bézier 控制点最小可识别性测试
+
+`quadratic_bezier_minimal_experiment.py` 是一个更小、更干净的后续实验，用来把三次曲线/OOD 实验混在一起的两个问题拆开：干净 raster 在局部是否足以确定控制点，以及小数据预算下标准 ResNet18 能否学会这个逆映射。这里的“二次”指具有 `P0,P1,P2` 三个二维控制点、共 6 个 normalized 坐标的 quadratic Bézier。
+
+正式 pilot 使用 2,000 张冻结训练图、256 张验证图和 512 张独立测试图。所有控制点都在画布内：`P0,P2 ∈ (0.15,0.85)^2`、`P1 ∈ [0.10,0.90]^2`，canonical `P0.x < P2.x`，端点水平距离至少 0.35，P1 到端点弦线的距离至少 0.08。第一版刻意排除了画布外控制点、OOD、近直线和可见性混杂。Raster 仍为 224×224、4× supersampling 后 LANCZOS 下采样。网络仍严格使用 `resnet18(weights=None)`、原始 GAP，只将 `fc` 改成 `Linear(512,6)`。
+
+```powershell
+# 1 epoch 全链路 smoke test
+python quadratic_bezier_minimal_experiment.py all --profile smoke
+
+# 小数据正式 pilot
+python quadratic_bezier_minimal_experiment.py all --profile minimal
+```
+
+### 结果
+
+20 epoch checkpoint 在 512 个测试样本上的结果为：
+
+| 指标 | 误差 |
+|---|---:|
+| 6 个坐标总体 MAE | 5.063 px |
+| 端点 P0/P2 MAE | 2.850 px |
+| 内部控制点 P1 MAE | 9.488 px |
+| P1x / P1y MAE | 8.706 / 10.271 px |
+| 同 t 对齐的曲线坐标 RMSE | 5.015 px |
+| 重渲染图像 MAE，强度 [0,1] | 0.01395 |
+
+最佳 validation loss 出现在最后一个 epoch 20，而且 train/validation error 仍在下降。因此这些网络数值只能解释为当前训练预算下的 pilot，不能当作架构收敛上限。
+
+Renderer 层的结果明显更好。64 个样本的 6×6 finite-difference Jacobian 全部为 rank 6；condition number 中位数 7.72，p90 为 11.13。把有限差分位移从 0.75 px 改成 0.5 或 1.0 px 时没有 rank 变化；`sigma_min` 排序的 Spearman 分别为 0.885 和 0.859，condition 排序分别为 0.956 和 0.965。
+
+另一个局部 inverse-rendering 检查对 16 个样本使用 4 个真值邻域初始化，扰动尺度约覆盖 2–20 px。按最低 raster loss 选择 restart 后，control MAE 平均 0.992 px、中位数 0.887 px、p90 为 1.420 px；端点和 P1 的平均误差分别为 0.974 和 1.028 px；62.5% 样本达到 control MAE ≤ 1 px。不过不同 restart 的解平均相差 17.52 px，因此这只能支持局部可观测性，不能当作盲反演器或全局唯一性证明。
+
+在 64 个 Jacobian 样本上，`log(sigma_min)` 和 `log(condition)` 与 ResNet 误差的 Spearman 仅为 -0.022 和 0.030。对这个受限分布而言，局部直接反演约 1 px，而 ResNet 的 P1 误差为 9.49 px；这个差距更支持学习/优化/表征限制，而不是局部 raster 不可识别。它没有隔离出 GAP 的因果作用，并且最佳 checkpoint 在最后一轮，所以下一步首先应补更长训练。
+
+![Quadratic training history](results/quadratic_bezier_minimal/minimal/figures/loss_mae.png)
+
+![Quadratic control-point predictions](results/quadratic_bezier_minimal/minimal/figures/overlay.png)
+
+![Quadratic identifiability correlations](results/quadratic_bezier_minimal/minimal/figures/identifiability_vs_error.png)
+
 ## 证据边界
 
 这是单 seed、单条水平线、单一长度/y 位置和固定 224×224 分辨率的探索性实验。要形成更强的机制或普适结论，至少还应补充：
@@ -228,11 +269,13 @@ Hole 的绝对 MAE 比 ID 低 0.559 px，但它的常数基线本身容易 31.6%
 ├── resnet_phase_experiment.py
 ├── supplemental_baseline_long.py
 ├── bezier_inverse_experiment.py
+├── quadratic_bezier_minimal_experiment.py
 ├── requirements.txt
 ├── results/
 │   ├── main/                 # 三模型 20 epoch 分析和等变性结果
 │   ├── baseline_60ep/        # baseline 延长训练结果
-│   └── bezier_inverse/       # 独立 smoke/full Bézier 反演结果
+│   ├── bezier_inverse/       # 独立 smoke/full 三次 Bézier 反演结果
+│   └── quadratic_bezier_minimal/ # 二次 Bézier 最小可识别性 pilot
 ├── LICENSE
 ├── README.md
 └── README_CN.md

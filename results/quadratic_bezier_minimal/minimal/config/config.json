@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "profile": {
+    "name": "minimal",
+    "train_count": 2000,
+    "val_count": 256,
+    "test_count": 512,
+    "epochs": 20,
+    "batch_size": 64,
+    "identifiability_count": 64,
+    "inverse_count": 16,
+    "inverse_restarts": 4
+  },
+  "seed": 20260810,
+  "image_size": 224,
+  "supersample": 4,
+  "resampling": "LANCZOS",
+  "curve_samples": 256,
+  "stroke_width": 3.0,
+  "targets": [
+    "p0x",
+    "p0y",
+    "p1x",
+    "p1y",
+    "p2x",
+    "p2y"
+  ],
+  "canonical": {
+    "p0x_less_than_p2x": true,
+    "min_x_gap": 0.35,
+    "endpoints_open_range": [
+      0.15,
+      0.85
+    ]
+  },
+  "p1_support": [
+    0.1,
+    0.9
+  ],
+  "p1_chord_distance_min": 0.08,
+  "renderer": "Pillow high-resolution polyline then LANCZOS",
+  "model": {
+    "name": "torchvision.resnet18",
+    "weights": null,
+    "avgpool": "AdaptiveAvgPool2d((1,1))",
+    "head": "Linear(512,6)",
+    "sigmoid": false
+  },
+  "loss": {
+    "name": "SmoothL1Loss",
+    "beta": 0.02
+  },
+  "optimizer": {
+    "name": "AdamW",
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "amp": true,
+    "scheduler": "ReduceLROnPlateau(factor=0.5,patience=3)"
+  },
+  "identifiability": {
+    "delta": 0.0033632286995515697,
+    "delta_sensitivity_px": [
+      0.5,
+      0.75,
+      1.0
+    ],
+    "sensitivity_samples": 16,
+    "normalization": 50176
+  },
+  "inverse": {
+    "method": "SciPy L-BFGS-B",
+    "samples": 16,
+    "restarts": 4,
+    "finite_difference_delta": 0.0033632286995515697,
+    "initial_scale_px": [
+      2.0,
+      20.0
+    ],
+    "joint_render_mse_threshold": 0.001,
+    "local_only": true
+  },
+  "fingerprint": "ef889a558e123c24dc4e"
+}

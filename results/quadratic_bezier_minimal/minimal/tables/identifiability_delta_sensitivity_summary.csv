@@ -1,0 +1,3 @@
+reference_delta_px,comparison_delta_px,log_sigma_min_spearman,log_condition_spearman,rank_changes
+0.75,0.5,0.8852941176470588,0.9558823529411765,0
+0.75,1.0,0.8588235294117647,0.9647058823529412,0

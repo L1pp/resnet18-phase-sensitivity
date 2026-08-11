@@ -11,6 +11,7 @@ env/
 # Generated experiment artifacts. Curated lightweight results are stored in results/.
 /outputs/
 /results/bezier_inverse/smoke/
+/results/quadratic_bezier_minimal/smoke/
 *.pt
 *.pth
 *.ckpt
