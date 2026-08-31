@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "clean_room_asset_manifest",
+  "manifest_id": "s0_a10_analysis_assets_v1",
+  "description": "Hash-pinned imported A10 materialization inputs for the separately authorized OLS/kernel analysis.",
+  "materializer_protocol_id": "a10_materialize_v1",
+  "materializer_protocol_sha256": "62ad9a43c540896a8031186a1bda9107d8c68ca58e79d0c1036d5d48a2548ac1",
+  "assets": [
+    {
+      "id": "a10_imported_ols_g64_gap_to_p6",
+      "path": "../imported/a10_closeout_s0_materialized_20260821/closeout_sprint_clean/results/a10_materialize_v1/ols_g64_gap_to_p6_v1.npz",
+      "role": "frozen_g64_ols",
+      "task": "a10_ols",
+      "source_machine": "A10_imported",
+      "sha256": "f4dbcf7a63c93101370139381745950564c743cc99357cd51985842e3a57cff4"
+    },
+    {
+      "id": "a10_imported_kernel_runner_input",
+      "path": "../imported/a10_closeout_s0_materialized_20260821/closeout_sprint_clean/results/a10_materialize_v1/kernel_runner_input_v1.npz",
+      "role": "kernel_input",
+      "task": "a10_kernel",
+      "source_machine": "A10_imported",
+      "sha256": "a289da7cd1e5dafa724fb3b7cc114d94f9c2340e92ed249b981d48441a62c962"
+    },
+    {
+      "id": "a10_imported_materialize_manifest",
+      "path": "../imported/a10_closeout_s0_materialized_20260821/closeout_sprint_clean/results/a10_materialize_v1/materialize_manifest.json",
+      "role": "materialize_manifest",
+      "task": "a10_materialize",
+      "source_machine": "A10_imported",
+      "sha256": "ac3e3540519f9e4b2a7f7681ecb7628fd6c3e99bf87d421657df0b3ba95741fe"
+    },
+    {
+      "id": "a10_imported_materialize_protocol_lock",
+      "path": "../imported/a10_closeout_s0_materialized_20260821/closeout_sprint_clean/results/a10_materialize_v1/protocol_lock.json",
+      "role": "materializer_protocol_lock",
+      "task": "a10_materialize",
+      "source_machine": "A10_imported",
+      "sha256": "8ba6306ce1df96be294ce4b1b2785daf1f0db58e5e19b31ede0ed9b21739e85a"
+    },
+    {
+      "id": "a10_imported_dataset_audit_decision",
+      "path": "../imported/a10_closeout_s0_materialized_20260821/closeout_sprint_clean/results/a10_dataset_audit_v1/decision.json",
+      "role": "dataset_audit_decision",
+      "task": "a10_dataset_audit",
+      "source_machine": "A10_imported",
+      "sha256": "7793983e8cb2728d8f17f93549085fabefc5cd23d958ae6a20ca2b070161cde6"
+    },
+    {
+      "id": "a10_imported_dataset_audit",
+      "path": "../imported/a10_closeout_s0_materialized_20260821/closeout_sprint_clean/results/a10_dataset_audit_v1/dataset_audit.json",
+      "role": "dataset_audit",
+      "task": "a10_dataset_audit",
+      "source_machine": "A10_imported",
+      "sha256": "a3e96bbf9e94d042a60a74cda8a72c0b0e63beb79e4ca593b997b29dead29453"
+    },
+    {
+      "id": "a10_imported_dataset_asset_lock",
+      "path": "../imported/a10_closeout_s0_materialized_20260821/closeout_sprint_clean/results/a10_dataset_audit_v1/asset_lock.json",
+      "role": "dataset_asset_lock",
+      "task": "a10_dataset_audit",
+      "source_machine": "A10_imported",
+      "sha256": "0d0459b520d18cdf66a14fe81946441ec16502d1803cb390c79b7c98ad6932b2"
+    },
+    {
+      "id": "a10_imported_materializer_protocol",
+      "path": "../imported/a10_closeout_s0_materialized_20260821/closeout_sprint_clean/protocols/a10_materialize_v1.json",
+      "role": "materializer_protocol",
+      "task": "a10_materialize",
+      "source_machine": "A10_imported",
+      "sha256": "3eb8ba8c7067ed6367a3be413ccd1af2e6d985d136a59fc3a64ca8e7f7284c8f"
+    }
+  ]
+}

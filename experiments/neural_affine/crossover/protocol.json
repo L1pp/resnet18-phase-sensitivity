@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "protocol_id": "neural_affine_support_plasticity_clean_v1",
+  "task": "neural_affine_support_density_x_plasticity",
+  "seeds": [20260816, 20260817, 20260818],
+  "image_size": 224,
+  "coord_scale": 223.0,
+  "safe_box_px": {"low": 59.0, "high": 164.0},
+  "grid": {"levels": 8, "tid_order": "tx_major_ty_minor"},
+  "supports": {
+    "corners4": [0, 7, 56, 63],
+    "G9": [0, 3, 7, 24, 27, 31, 56, 59, 63],
+    "G16": [0, 2, 5, 7, 16, 18, 21, 23, 40, 42, 45, 47, 56, 58, 61, 63],
+    "G64": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+  },
+  "dense_grid": {"n": 41, "order": "tx_major_ty_minor"},
+  "renderer": {
+    "family": "blob",
+    "sigma": 6.0,
+    "supersample": 4,
+    "downsample": "PIL.Image.Resampling.LANCZOS",
+    "dtype": "uint8",
+    "mode": "L"
+  },
+  "model": {"family": "vanilla_resnet18", "output_space": "normalized", "head_dim": 2},
+  "regimes": ["frozen_feature", "head_only", "full"],
+  "training": {
+    "steps": 3000,
+    "batch_size": 64,
+    "optimizer": "AdamW",
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "loss": {"mse_weight": 1.0, "l1_weight": 0.25},
+    "scheduler": {"name": "CosineAnnealingLR", "eta_min": 0.00001},
+    "dtype": "fp32",
+    "amp": false,
+    "anchor_eval_every": 100,
+    "resume_every": 200
+  },
+  "evaluation": {"dense_n": 41, "batch_size": 64, "preprocess": "uint8_to_float32_then_divide_255"},
+  "gates": {
+    "support_mae_px": 0.25,
+    "crossover_gap_px": 2.0,
+    "crossover_spearman": -0.8,
+    "minimum_positive_seeds": 2,
+    "minimum_negative_seeds": 2
+  }
+}

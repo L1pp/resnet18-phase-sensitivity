@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "protocol_id": "neural_affine_s1_clean_v1",
+  "task": "neural_affine_2d_clean_blob",
+  "seeds": [
+    20260816,
+    20260817,
+    20260818
+  ],
+  "image_size": 224,
+  "coord_scale": 223.0,
+  "safe_box_px": {
+    "low": 59.0,
+    "high": 164.0
+  },
+  "anchor_grid": {
+    "nx": 8,
+    "ny": 8,
+    "tid_order": "tx_major_ty_minor",
+    "tids": [
+      0,
+      7,
+      56,
+      63
+    ]
+  },
+  "dense_grid": {
+    "n": 41,
+    "linspace": true,
+    "order": "tx_major_ty_minor"
+  },
+  "renderer": {
+    "family": "blob",
+    "sigma": 6.0,
+    "supersample": 4,
+    "downsample": "PIL.Image.Resampling.LANCZOS",
+    "dtype": "uint8",
+    "mode": "L",
+    "workers": 4,
+    "formula": "exp(-((x-cx)^2+(y-cy)^2)/(2*sigma^2))"
+  },
+  "data": {
+    "image_size": 224,
+    "coord_scale": 223.0,
+    "safe_box": {
+      "low": 59.0,
+      "high": 164.0
+    },
+    "grid_levels": 8,
+    "dense_grid": 41,
+    "support_tids": [
+      0,
+      7,
+      56,
+      63
+    ],
+    "family": "blob",
+    "template": {
+      "family": "blob",
+      "params": {
+        "sigma": 6.0
+      }
+    },
+    "supersample": 4
+  },
+  "grid": {
+    "safe_box": {
+      "low": 59.0,
+      "high": 164.0
+    },
+    "levels": 8,
+    "dense_grid": 41,
+    "support_tids": [
+      0,
+      7,
+      56,
+      63
+    ]
+  },
+  "training": {
+    "steps": 3000,
+    "batch_size": 64,
+    "optimizer": "AdamW",
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "loss": {
+      "mse_weight": 1.0,
+      "l1_weight": 0.25
+    },
+    "scheduler": {
+      "name": "CosineAnnealingLR",
+      "eta_min": 0.00001
+    },
+    "anchor_every": 100,
+    "resume_every": 200,
+    "dtype": "fp32",
+    "amp": false,
+    "resume": true
+  },
+  "models": [
+    "vanilla",
+    "coordconv"
+  ],
+  "model": {
+    "variants": [
+      "vanilla",
+      "coordconv"
+    ],
+    "variant": "vanilla",
+    "output_space": "normalized",
+    "head_dim": 2
+  },
+  "gates": {
+    "anchor_valid_px": 0.25,
+    "raw_positive_px": 20.0,
+    "residual_positive_px": 10.0,
+    "closed_form_mae_px": 0.000001,
+    "mlp_anchor_mae_px": 0.25,
+    "mlp_raw_mae_px": 5.0,
+    "audit_prediction_max_abs_px": 0.001,
+    "audit_metric_abs": 0.000001
+  },
+  "outputs": {
+    "checkpoint": "checkpoints/best.pt",
+    "predictions": "predictions.npz",
+    "metrics": "metrics.json",
+    "independent_audit": "independent_audit.json"
+  },
+  "evaluation": {
+    "dense_grid": 41,
+    "batch_size": 64,
+    "primary_predictions": "predictions.npz",
+    "primary_metrics": "metrics.json"
+  },
+  "probes": {
+    "grid_positions": [
+      0,
+      10,
+      20,
+      30,
+      40
+    ],
+    "indices": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      410,
+      420,
+      430,
+      440,
+      450,
+      820,
+      830,
+      840,
+      850,
+      860,
+      1230,
+      1240,
+      1250,
+      1260,
+      1270,
+      1640,
+      1650,
+      1660,
+      1670,
+      1680
+    ],
+    "order": "row_major"
+  },
+  "cache": {
+    "dense_images": "images.npy",
+    "dense_points": "points.npy",
+    "support_images": "support_images.npy",
+    "support_points": "support_points.npy",
+    "bundle": "cache.npz",
+    "manifest": "manifest.json",
+    "hash": "sha256"
+  }
+}
