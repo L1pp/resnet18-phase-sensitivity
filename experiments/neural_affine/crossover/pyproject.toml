@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neural-affine-crossover-clean"
+version = "0.1.0"
+description = "Clean support-density by plasticity protocol for Neural Affine"
+requires-python = ">=3.10"
+dependencies = ["numpy", "Pillow", "torch", "torchvision"]
+
+[project.scripts]
+neural-affine-crossover = "crossover.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]

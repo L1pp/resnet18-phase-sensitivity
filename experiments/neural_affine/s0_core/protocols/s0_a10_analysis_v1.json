@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "protocol_id": "s0_a10_analysis_v1",
+  "current_stage": "local_s0",
+  "execution_target": "local",
+  "allowed_devices": ["cpu"],
+  "description": "CPU-only analysis lock for imported A10 materialization outputs. This lock authorizes only the separately approved local OLS and kernel audits at their frozen fresh output roots; training, GPU execution, and renderer execution remain forbidden.",
+  "asset_manifest_path": "../manifests/s0_a10_analysis_assets_v1.json",
+  "asset_manifest_sha256": "4236a20ad4b55476a270ca4f55875050c8607ac6e05b798c44b45237ec1c9714",
+  "materializer_protocol_id": "a10_materialize_v1",
+  "materializer_protocol_sha256": "62ad9a43c540896a8031186a1bda9107d8c68ca58e79d0c1036d5d48a2548ac1",
+  "analysis_stages": ["ols", "kernel"],
+  "run_order": ["ols", "kernel"],
+  "stages": {
+    "ols": {
+      "asset_ids": ["a10_imported_ols_g64_gap_to_p6"],
+      "schema_kind": "frozen_g64_gap_to_p6_v1",
+      "target_semantics": "p6_normalized",
+      "head_dim": 6,
+      "coord_scale": 223,
+      "output_root": "results/s0_a10_ols_v1"
+    },
+    "kernel": {
+      "asset_ids": ["a10_imported_kernel_runner_input"],
+      "schema_kind": "kernel_runner_input_v1",
+      "protocol_sha256": "62ad9a43c540896a8031186a1bda9107d8c68ca58e79d0c1036d5d48a2548ac1",
+      "fit_names": ["G64", "G32", "G16", "G9", "maximin9", "boundary8_center"],
+      "heldout_names": ["random9", "cross5", "diagonal8"],
+      "output_root": "results/s0_a10_kernel_v1"
+    }
+  },
+  "training": {
+    "enabled": false,
+    "gpu_required": false,
+    "note": "This protocol authorizes the listed local CPU OLS/kernel audits; execution is initiated by the main thread after the review gate passes."
+  }
+}

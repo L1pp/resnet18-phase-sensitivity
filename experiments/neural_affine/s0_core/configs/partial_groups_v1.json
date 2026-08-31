@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "config_id": "partial_groups_v1",
+  "asset_manifest": "../manifests/s0_local_assets_v1.json",
+  "output_dir": "../results/prepared_inputs/partial_v1",
+  "prepared_manifest": "../manifests/s0_prepared_partial_v1.json",
+  "groups": {
+    "neural_affine_2d": {
+      "asset_ids": ["neural_affine_s20260816_field", "neural_affine_s20260817_field", "neural_affine_s20260818_field"],
+      "anchors": [[59, 59], [59, 164], [164, 59], [164, 164]],
+      "anchors_provenance": {"kind": "explicit_protocol", "name": "G4", "support_ids": [0, 7, 56, 63]},
+      "output_file": "neural_affine_2d.npz"
+    },
+    "amd_2d": {
+      "asset_ids": ["amd_2d_s20260816_field", "amd_2d_s20260817_field", "amd_2d_s20260818_field"],
+      "anchors": [[59, 59], [59, 164], [164, 59], [164, 164]],
+      "anchors_provenance": {"kind": "explicit_protocol", "name": "G4", "support_ids": [0, 7, 56, 63]},
+      "output_file": "amd_2d.npz"
+    },
+    "a10_6d": {
+      "asset_ids": ["a10_6d_s20260816_field", "a10_6d_s20260817_field", "a10_6d_s20260818_field"],
+      "anchors": [[59, 59], [59, 104], [59, 164], [104, 59], [104, 104], [104, 164], [164, 59], [164, 104], [164, 164]],
+      "anchors_provenance": {"kind": "explicit_protocol", "name": "G9", "support_ids": [0, 3, 7, 24, 27, 31, 56, 59, 63]},
+      "output_file": "a10_6d.npz"
+    }
+  }
+}

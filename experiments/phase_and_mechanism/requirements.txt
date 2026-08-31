@@ -1,0 +1,8 @@
+# AMD 第一批参考依赖。先问用户确认 Python / ROCm 环境，不要擅自 pip。
+# torch / torchvision 必须装 ROCm 轮子，不要用本仓库 Phase 3 云包的 cu128 命令。
+
+numpy>=1.26
+Pillow>=10.0
+matplotlib>=3.8
+# torch>=2.2          # ROCm，问过用户再装
+# torchvision>=0.17    # 与上面的 ROCm torch 配套

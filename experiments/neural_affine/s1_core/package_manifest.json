@@ -1,0 +1,136 @@
+{
+  "aggregate_sha256": "a86efeb8bf987bdec5c3919db60dc2c1050444dda2491a725aea03dae9373e37",
+  "files": [
+    {
+      "bytes": 3214,
+      "path": "protocol.json",
+      "sha256": "e7428a4942a0ee05e94a165b7bab7a92e1ae6e155824c95659e0946b7644712b"
+    },
+    {
+      "bytes": 402,
+      "path": "pyproject.toml",
+      "sha256": "2fbb026811c9bd9b9f52730faa5f654473c5473ae6cd8c2e0a23fa1eab783844"
+    },
+    {
+      "bytes": 429,
+      "path": "README.md",
+      "sha256": "3e456824cc396adb94549e010d0f838c817ab18845323f08e50560010b7493ec"
+    },
+    {
+      "bytes": 80,
+      "path": "s1clean/__init__.py",
+      "sha256": "57cf12325b15393c3f8c532ea9ae83def570bf580ed68d2462af029219aead56"
+    },
+    {
+      "bytes": 5314,
+      "path": "s1clean/baselines.py",
+      "sha256": "70c62638c14fa2af451a1fc21f1c9d311ac31a4780c22bf6d9f1037468312339"
+    },
+    {
+      "bytes": 9481,
+      "path": "s1clean/cli.py",
+      "sha256": "50c28164a090bba2125a009a5b6df400ae8428d200c0434fb58b67f2ba546e1d"
+    },
+    {
+      "bytes": 911,
+      "path": "s1clean/config.py",
+      "sha256": "c50a9e1bab59a5e31f5ad4e89f559a3e7060c8898ceeb6ebb83e5a10860528fd"
+    },
+    {
+      "bytes": 20481,
+      "path": "s1clean/data.py",
+      "sha256": "bd1847322e64515cdefc8b5067bb572e4a1b0fdb9a0703315c5c9c98d3930979"
+    },
+    {
+      "bytes": 2833,
+      "path": "s1clean/environment.py",
+      "sha256": "a909fe361dc982a4c957e3502eb4140b4a2e1d75d5a88648a605e601a2fb171b"
+    },
+    {
+      "bytes": 42601,
+      "path": "s1clean/independent_eval.py",
+      "sha256": "f6a3bc351cd96f465afb9b4da35e8c450ad4f4938f7d2aef3590809182764dd8"
+    },
+    {
+      "bytes": 3843,
+      "path": "s1clean/manifest.py",
+      "sha256": "7ee3a38e0cdf218248d9ba53e1f160d40f8f74ace948fae14b464d7a80f952b9"
+    },
+    {
+      "bytes": 4031,
+      "path": "s1clean/metrics.py",
+      "sha256": "88928282cd8f43c47e32a085eb820874e586d7e27829cf3264f14275033e5959"
+    },
+    {
+      "bytes": 7057,
+      "path": "s1clean/models.py",
+      "sha256": "ebff50b429b2345a0defb6874c844fe6e6e6ae429d6eeae73f222a60e38aef57"
+    },
+    {
+      "bytes": 7166,
+      "path": "s1clean/preflight.py",
+      "sha256": "86bf7b72a7861515ffc79b184eebb16907176f7629a0477d9d0243d1aa3c481c"
+    },
+    {
+      "bytes": 24691,
+      "path": "s1clean/runner.py",
+      "sha256": "07dd6eb9c14c70f6e41b6b2683e1be418e4487b5308f079457635609039a4c11"
+    },
+    {
+      "bytes": 2521,
+      "path": "s1clean/status.py",
+      "sha256": "66034844b2100bcf178d6fa3fcec3b07a36f64bdd8d05191d1d0b5a174f3a780"
+    },
+    {
+      "bytes": 21296,
+      "path": "s1clean/train.py",
+      "sha256": "94d80625728e71638afd9d48fc5c54c995ddd78d079c2d142e285891263ddf99"
+    },
+    {
+      "bytes": 4376,
+      "path": "scripts/cpu_preflight.sh",
+      "sha256": "5282fededb2b7bb5844bea88017cc7d86a121ce1466204a6300193836a905041"
+    },
+    {
+      "bytes": 11292,
+      "path": "scripts/gpu_launch.sh",
+      "sha256": "41968d27a38019e3a61ae2bf120d37bf5102d047adc8f00af99886a5dc50683b"
+    },
+    {
+      "bytes": 3833,
+      "path": "scripts/pack_return.sh",
+      "sha256": "b68badbe3cae90262cae34831ded5d375276eb6d0c2619e4545136427755d91c"
+    },
+    {
+      "bytes": 10406,
+      "path": "scripts/reconnect_and_launch.ps1",
+      "sha256": "50fdb49ccb3e9af35e58826c7e305ce5706cfcc2b9fadbc7f6bacbe5d9cfa250"
+    },
+    {
+      "bytes": 41,
+      "path": "tests/__init__.py",
+      "sha256": "7dcd427fe61d03750db02816b73d0bf8e2b2acb981d05b48ec2354e0b0cf4ec8"
+    },
+    {
+      "bytes": 2742,
+      "path": "tests/test_core.py",
+      "sha256": "c54d40383ca1860545a1978609b3a4cc1d4a0f93b73799e42aa58ceaddc63001"
+    },
+    {
+      "bytes": 5079,
+      "path": "tests/test_data.py",
+      "sha256": "80a0d6e4abe9f0f64dafc946d14c32283c8744eed7691579662860e17c92655a"
+    },
+    {
+      "bytes": 5428,
+      "path": "tests/test_independent_eval.py",
+      "sha256": "36dccdff69581973d9402c872ed8740a99f27ace2eab7ee09e0b403128dea0c6"
+    },
+    {
+      "bytes": 3477,
+      "path": "tests/test_training.py",
+      "sha256": "677ec6e25083fb0ed41120515c93e4f12e5915465298ed67ba2ec99678271d35"
+    }
+  ],
+  "root": "."
+}
