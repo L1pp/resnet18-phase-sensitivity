@@ -1,166 +1,109 @@
-# ResNet18 Stride/Downsampling Phase Sensitivity Experiment
-English | [简体中文](README_CN.md)
+# Neural Geometry and Spatial Representation Experiments
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[简体中文](README_CN.md)
 
-This repository contains a small, reproducible PyTorch experiment using a synthetic coordinate-regression task with a “white short line on a black background.” It tests whether the stride/downsampling operations in standard `torchvision.models.resnet18(weights=None)` introduce translation phase sensitivity, and whether coordinate errors show periods of 2/4/8/16/32 pixels.
+This repository is a curated public snapshot of a completed research project on
+geometric localization, spatial representation, and off-support behavior in
+convolutional models.
 
-The repository includes the complete experiment scripts and selected CSV/PNG results. Generated data, model checkpoints, and other large files are not tracked by Git.
+It is intended as a research archive and project showcase. It is **not** a
+complete, immediately runnable release of the original local workspace.
 
-## Questions
+## Research scope
 
-1. With the original `AdaptiveAvgPool2d((1, 1))` retained, can standard ResNet18 reliably distinguish positions that differ by 1 px?
-2. Does the coordinate error show 2/4/8/16/32 px periods associated with cumulative stride?
-3. Can this periodicity support the hypothesis that downsampling phase provides fine-grained positional signal?
-4. Does anti-aliasing reduce periodic error and feature non-equivariance?
-5. Is coordinate regression easier after removing GAP and retaining the final 7×7 feature map?
+The project examines how neural networks infer positions, translations, and
+geometric parameters from rendered images, with particular attention to:
 
-## Experimental design
+- stride, anti-aliasing, global average pooling, and spatial representations;
+- image-to-coordinate and image-to-Bézier-curve inverse problems;
+- sparse support points and off-support generalization;
+- frozen features, linear probes, Neural Affine variants, and NTK analyses;
+- boundary conditions, finite domains, and function-selection mechanisms;
+- optimization dynamics, recovery behavior, and controlled architecture tests.
 
-| Item | Setting |
+## Research timeline
+
+| Stage | Main focus |
 |---|---|
-| Image | 224×224, black background with a white line |
-| Geometry | Fixed horizontal short line, 21 px long and 3 px wide |
-| Fixed position | `y=112` |
-| Regression target | Line-center coordinate `x / 223` |
-| Training set | 810 images with non-integer sub-pixel x offsets |
-| Validation set | 810 images with sub-pixel offsets distinct from the training set |
-| Dense test | `x=32..191`, 160 consecutive integer positions, i.e. 5×32 |
-| Random seed | `20260810` |
-| Optimizer | AdamW, initial LR `1e-3`, weight decay `1e-4` |
-| Batch size | 64 |
+| Early experiments | Position regression, stride/downsampling phase sensitivity, anti-aliasing, GAP, and Bézier inversion |
+| Phase 1–1.8 | Frozen GAP representations, spatial factors, subspace probes, and unseen translations |
+| Phase 2 | Position coverage, architecture, padding, content, symmetry, and recovery behavior |
+| Phase 3 | Operators, group/equivariance tests, content, resolution, initialization, and representation diagnostics |
+| S0 / S1 | Clean-room materialization, Neural Affine controls, crossover analysis, and independent audits |
+| Track A | Small controlled tests of a specified finite-boundary mechanism |
+| Track B | Function-selection experiments and post-hoc mechanism diagnostics |
 
-The script generates the data in advance and freezes it in a local NPZ file; no random rendering occurs online during training. Training, validation, and dense-test splits use independent x offsets, and the dense sweep stays away from line-cropping boundaries.
+See [the detailed timeline](docs/RESEARCH_TIMELINE.md) and the
+[Chinese experiment summary](docs/EXPERIMENT_SUMMARY_CN.md).
 
-### Model variants
-
-- **baseline**: The original `resnet18(weights=None)` with GAP retained; only the final `fc` is replaced with a single-coordinate regression head.
-- **antialias**: A fixed 3×3 binomial depthwise blur-pooling operation is used at every stride-2 decimation, while preserving the same cumulative output stride.
-- **no_gap**: The final GAP is removed; the final `512×7×7` feature map is flattened and passed to a small MLP.
-
-`no_gap` has about 17.60M parameters, compared with about 11.18M for baseline/antialias. Its result therefore mixes spatial information with the larger head capacity and cannot be attributed to GAP alone.
-
-## Running the experiment
-
-Requirements are Python, PyTorch, torchvision, NumPy, and Matplotlib. The experiment was run with Python 3.12, PyTorch 2.12.0, and torchvision 0.27.0; CUDA is used automatically when available.
-
-```powershell
-python -m pip install -r requirements.txt
-
-# Read-only check; does not train
-python resnet_phase_experiment.py check
-
-# Keep data generation and training as separate steps
-python resnet_phase_experiment.py prepare
-python resnet_phase_experiment.py train
-python resnet_phase_experiment.py analyze
-python resnet_phase_experiment.py equivariance --equiv-source trained
-```
-
-The 60-epoch baseline supplement reuses the data generated by the main script and exactly the same training protocol for its first 20 epochs:
-
-```powershell
-python supplemental_baseline_long.py --check-only
-python supplemental_baseline_long.py
-```
-
-Generated files are written to `outputs/` beside the scripts by default. That directory, the NPZ data, and `.pt` checkpoints are excluded by `.gitignore`; `results/` in the repository contains lightweight results selected manually after this run.
-
-## Key results
-
-### Coordinate localization
-
-| Model / checkpoint | Run | Training budget | Dense MAE | RMSE | Max absolute error | Mean adjacent prediction step | Non-monotonic fraction |
-|---|---|---:|---:|---:|---:|---:|---:|
-| baseline best (epoch 10) | 20-epoch main run | 20 | 2.863 px | 3.065 px | 4.877 px | 1.0163 px | 0.63% |
-| antialias best | 20-epoch main run | 20 | 0.359 px | 0.434 px | 1.116 px | 0.9946 px | 0 |
-| no_gap best | 20-epoch main run | 20 | 0.566 px | 0.668 px | 1.528 px | 0.9989 px | 0 |
-| baseline epoch 10 | 60-epoch supplemental run | 10 | 2.889 px | 3.092 px | 4.970 px | 1.0166 px | 0.63% |
-| baseline epoch 60 | 60-epoch supplemental run | 60 | 0.261 px | 0.305 px | 0.764 px | 0.9980 px | 0 |
-| **baseline best (epoch 50)** | **60-epoch supplemental run** | **Best validation checkpoint over 60 epochs** | **0.200 px** | **0.246 px** | **0.668 px** | **0.9983 px** | **0** |
-
-The supplemental epoch-10 checkpoint has exactly the same model weights as the main-run baseline best checkpoint. The small difference in dense metrics comes from the inference-precision path: the main analysis uses full precision, while the supplemental CUDA analysis uses AMP/autocast.
-
-The best baseline checkpoint is fully monotonic across 160 consecutive integer positions, with an overall bias of only `+0.059 px`. In this toy setting, standard ResNet18 with the original GAP can therefore reliably distinguish positions that differ by 1 px.
-
-Different training budgets should not be used to rank the final architectures: the 20-epoch results show faster convergence for antialias/no-GAP, while the 60-epoch baseline shows that the earlier roughly 3 px error was not a fixed structural ceiling.
-
-The three-model comparison below comes from the unified 20-epoch main experiment; the independent 60-epoch baseline training curve follows it.
-
-![true x versus prediction](results/main/figures/true_vs_pred.png)
-
-![60 epoch baseline training curve](results/baseline_60ep/figures/training_val_mae_lr.png)
-
-### Periodicity decreases substantially with training
-
-Baseline detrended-residue mean peak-to-peak values:
-
-| checkpoint | P2 | P4 | P8 | P16 | P32 |
-|---|---:|---:|---:|---:|---:|
-| epoch 10 | 0.120 | 0.245 | 0.265 | 0.435 | **2.549 px** |
-| best epoch 50 | 0.039 | 0.207 | 0.245 | 0.335 | **0.408 px** |
-
-After linear detrending and a Hann window, the amplitude at the exact P32 FFT bin decreases from `0.847 px` at epoch 10 to `0.068 px` for the best checkpoint. The P32 residue decreases by about 84%, and the FFT amplitude by about 92%.
-
-This indicates a strong 32 px periodic error in the under-trained baseline, with only a low-amplitude periodic component remaining after sufficient training. The current data do not show a stable, clear, complete 2/4/8/16/32 period ladder.
-
-![prediction error versus x](results/main/figures/error_vs_x.png)
-
-![prediction error grouped by x mod 32](results/main/figures/error_x_mod32.png)
-
-![error FFT](results/main/figures/error_fft.png)
-
-### Feature non-equivariance under a 1 px shift
-
-Normalized L1 after a 1 px input shift and fractional alignment for one fixed sample:
-
-| Stage | Cumulative stride | baseline | antialias | no_gap |
-|---|---:|---:|---:|---:|
-| conv1 | 2 | 0.056 | 0.023 | 0.063 |
-| maxpool | 4 | 0.078 | 0.034 | 0.080 |
-| layer1 | 4 | 0.058 | 0.025 | 0.056 |
-| layer2 | 8 | 0.044 | 0.023 | 0.036 |
-| layer3 | 16 | 0.031 | 0.023 | 0.030 |
-| layer4 | 32 | 0.024 | 0.020 | 0.019 |
-
-No stage is strictly equivariant to the 1 px shift; the largest difference appears around maxpool, and anti-aliasing clearly reduces differences in early stages. A smaller normalized difference in deeper layers does not establish strict deep-layer equivariance; it may also reflect spatial resolution, smoothing, and normalization scale.
-
-![equivariance summary](results/main/figures/equivariance_summary.png)
-
-## Preliminary conclusions
-
-- Standard ResNet18 stride/downsampling produces measurable translation phase sensitivity.
-- With insufficient training, coordinate error can show a strong 32 px period, but this is not an unavoidable structural limit.
-- After sufficient training, the original GAP baseline reaches `0.200 px` dense MAE on this task and reliably distinguishes 1 px shifts.
-- As localization becomes more accurate, the strong P32 periodicity weakens. The current results therefore support the presence of phase sensitivity, but not the claim that it is the primary signal required for precise localization; it may instead be a perturbation that the network learns to compensate for.
-- Anti-aliasing clearly improves convergence speed under the limited training budget and translation stability in early features, but it does not uniformly remove all P16/P32 components.
-- Removing GAP is easier to optimize within 20 epochs, but standard GAP is not a fundamental obstacle to precise localization; capacity-matched controls are still needed.
-
-## Evidence limits
-
-This is an exploratory experiment with one seed, one horizontal line, one line length/y position, and a fixed 224×224 resolution. Stronger mechanistic or general claims would at least require:
-
-1. The same sufficient training or unified early stopping for baseline/antialias/no-GAP;
-2. At least 3 random seeds per model;
-3. Capacity-matched no-GAP linear or GAP+MLP controls;
-4. Feature-equivariance statistics across multiple x/y positions, line lengths, and orientations;
-5. FFT shuffle/null or bootstrap tests.
-
-## Repository structure
+## Repository layout
 
 ```text
-.
-├── resnet_phase_experiment.py
-├── supplemental_baseline_long.py
-├── requirements.txt
-├── results/
-│   ├── main/                 # Three-model 20-epoch analysis and equivariance results
-│   └── baseline_60ep/        # Extended baseline training results
-├── LICENSE
-├── README.md
-└── README_CN.md
+experiments/
+  legacy/                 early phase-sensitivity and Bézier entry points
+  phase_and_mechanism/    selected Phase 1/2/3 and mechanism code
+  neural_affine/          selected S0, S1, and crossover code
+  tracks/                 selected Track A/B code and tests
+docs/                     summaries, timeline, and archival notes
+showcase/                 selected figures and compact result tables
 ```
+
+## What is included
+
+- selected experiment source code and tests;
+- research protocols and small configuration files;
+- factual research summaries and evidence notes;
+- selected figures and aggregate tables;
+- the lightweight results that were already public in the original repository.
+
+## What is intentionally omitted
+
+- model weights, checkpoints, dense fields, and large binary artifacts;
+- generated datasets and complete prediction dumps;
+- cloud, machine, deployment, transfer, and storage-operation materials;
+- device inventories, environment snapshots, network records, and credentials;
+- large archives, logs, caches, temporary files, and full formal-run returns.
+
+These omissions are intentional. The public repository documents the research
+direction and evidence trail; it does not mirror the complete local execution
+archive.
+
+## Reproducibility and historical paths
+
+The retained scripts were written across several execution environments. Some
+files still contain historical absolute paths or environment-specific defaults.
+Those paths were deliberately not rewritten during archival cleanup.
+
+If reusing the code:
+
+1. work in a separate copy;
+2. inspect and adapt paths and dependencies for the target environment;
+3. do not assume scripts run from the repository root;
+4. treat archived manifests and reports as historical records.
+
+More detail is in [the archive and path note](docs/ARCHIVE_AND_PATH_NOTE.md).
+
+## Selected views
+
+The [showcase index](showcase/README.md) links selected figures and compact
+tables. A few examples are shown below.
+
+![ResNet18 equivariance summary](showcase/legacy_phase_sensitivity/main/figures/equivariance_summary.png)
+
+![Quadratic Bézier overlay](showcase/figures/quadratic_overlay.png)
+
+![Track A overview](showcase/figures/track_a_toy_overview.png)
+
+## Evidence boundaries
+
+The archive distinguishes formal results, supplementary analyses, diagnostics,
+and incomplete runs. It also distinguishes audit of an existing artifact from
+independent reproduction of an experiment.
+
+Several experiments use a fixed synthetic protocol or a limited number of
+seeds. Numerical agreement within one protocol should not be treated as a
+universal claim about all architectures, datasets, or training procedures.
 
 ## License
 
-[MIT](LICENSE)
+See [LICENSE](LICENSE).

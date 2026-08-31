@@ -1,21 +1,77 @@
+# Python caches and local environments
 __pycache__/
 *.py[cod]
 *.so
-
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 venv/
 env/
+
+# Editors and local AI tooling
 .idea/
 .vscode/
+.cursor/
+.codebuddy/
+.agents/
+.codex/
+.cursorrules
 
-# Generated experiment artifacts. Curated lightweight results are stored in results/.
-/outputs/
+# Local archive roots: never publish from this repository
+/local_only/
+/_cleanup/
+/artifacts/
+/tools/
+
+# Generated experiment trees
+**/outputs/
+**/results/
+**/runs/
+**/checkpoints/
+**/smoke/
+**/.test_tmp/
+**/_work/
+**/logs/
+**/formal_archive/
+**/packages/
+
+# Weights, generated arrays, and large model/data formats
 *.pt
 *.pth
 *.ckpt
+*.safetensors
+*.onnx
 *.npz
+*.npy
+*.bin
 
-# Local logs and caches
+# Archives and transfer parts
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+*.part-*
+
+# Logs, secrets, and access material
 *.log
-.pytest_cache/
-.mypy_cache/
+.env
+.env.*
+*.pem
+*.key
+authorized_keys
+authorized_keys.*
+
+# Machine, network, and transfer receipts
+**/REMOTE_BIND*
+**/*HOSTNAME*
+**/*MACHINE*
+**/*network*
+**/sys_probe*
+**/*UPLOAD*
+**/*DOWNLOAD*
+
+# Platform noise
+.DS_Store
+Thumbs.db
