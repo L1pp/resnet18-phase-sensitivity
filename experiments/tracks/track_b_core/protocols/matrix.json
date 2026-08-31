@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "release_id": "function_selection_v1_trackb_unified_r1_20260824",
+  "status": "MILESTONE_3_FORMAL_RELEASE_MATRIX_AWAITING_TWO_LAYER_REVIEW",
+  "seeds": [20260816, 20260817, 20260818],
+  "expected": {"logical_cells": 84, "physical_jobs": 82, "optimizer_jobs": 78},
+  "families": {
+    "B1": [
+      {"condition_id":"bn","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"bn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"gn","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"frozen_bn","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"frozen_bn","training_path":"common_frozen_bn","target_kind":"identity"}
+    ],
+    "B2": [
+      {"condition_id":"A1","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL","Q_B2_A1_HELDOUT_FULLBOX"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"A8","index_id":"IDX_CORNERS4_BLOB_A8","query_ids":["Q_DENSE41_CANONICAL","Q_B2_A8_HELDOUT_FULLBOX"],"stream_kind":"common","population":32,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"A64","index_id":"IDX_CORNERS4_BLOB_A64","query_ids":["Q_DENSE41_CANONICAL","Q_B2_A64_HELDOUT_FULLBOX"],"stream_kind":"common","population":256,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"}
+    ],
+    "B3": [
+      {"condition_id":"4x16","index_id":"IDX_CORNERS4_BLOB_A16","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":64,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"16x4","index_id":"IDX_GRID4X4_BLOB_A4","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":64,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"64x1","index_id":"IDX_GRID8X8_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":64,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"}
+    ],
+    "B4": [
+      {"condition_id":"reference_adamw","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"causal_adamw","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"b4_causal","population":4,"optimizer_job":true,"normalization":"gn","training_path":"b4_causal","optimizer":"adamw","target_kind":"identity"},
+      {"condition_id":"causal_sgd","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"b4_causal","population":4,"optimizer_job":true,"normalization":"gn","training_path":"b4_causal","optimizer":"sgd","target_kind":"identity"}
+    ],
+    "B5": [
+      {"condition_id":"blob_sigma6","index_id":"IDX_CORNERS4_BLOB_SIGMA6_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"line_fixed","index_id":"IDX_CORNERS4_LINE_FIXED_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"scalene_triangle","index_id":"IDX_CORNERS4_SCALENE_TRIANGLE_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"}
+    ],
+    "B6": [
+      {"condition_id":"g64_upstream","index_id":"IDX_G64_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":64,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"identity"},
+      {"condition_id":"ridge","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":null,"optimizer_job":false,"normalization":"gn","training_path":"b6_ridge","target_kind":"identity","requires_upstream":"g64_upstream"},
+      {"condition_id":"head_only","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"b6_head_only","target_kind":"identity","requires_upstream":"g64_upstream"},
+      {"condition_id":"lp_ft","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"b6_lp_ft","target_kind":"identity","requires_upstream":"g64_upstream"},
+      {"condition_id":"layer4","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"b6_layer4","target_kind":"identity","requires_upstream":"g64_upstream"},
+      {"condition_id":"full","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"b6_full","target_kind":"identity","requires_upstream":"g64_upstream"}
+    ],
+    "B7": [
+      {"condition_id":"dense_absolute","index_id":"IDX_GRID8X8_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL","Q_B7_GRID8X8_HELDOUT_SUPPORT","Q_B7_HELDOUT_FULLBOX_SUPPLEMENTARY"],"stream_kind":"b7_double_draw","optimizer_job":true,"normalization":"gn","training_path":"b7_dense_absolute","target_kind":"identity"},
+      {"condition_id":"dense_relative_4_neighbor_plus_1_anchor","index_id":"IDX_GRID8X8_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL","Q_B7_GRID8X8_HELDOUT_SUPPORT","Q_B7_HELDOUT_FULLBOX_SUPPLEMENTARY"],"stream_kind":"b7_double_draw","optimizer_job":true,"normalization":"gn","training_path":"b7_relative","anchors":[0],"target_kind":"identity"},
+      {"condition_id":"dense_relative_4_neighbor_plus_4_corners","index_id":"IDX_GRID8X8_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL","Q_B7_GRID8X8_HELDOUT_SUPPORT","Q_B7_HELDOUT_FULLBOX_SUPPLEMENTARY"],"stream_kind":"b7_double_draw","optimizer_job":true,"normalization":"gn","training_path":"b7_relative","anchors":[0,7,56,63],"target_kind":"identity"},
+      {"condition_id":"corners4_absolute_context","index_id":"IDX_CORNERS4_BLOB_A1","query_ids":["Q_DENSE41_CANONICAL","Q_B7_CORNERS4_HELDOUT_SUPPORT","Q_B7_HELDOUT_FULLBOX_SUPPLEMENTARY"],"stream_kind":"common","population":4,"optimizer_job":true,"normalization":"gn","training_path":"b7_context","target_kind":"identity","comparison_role":"context_only"}
+    ],
+    "B8": [
+      {"condition_id":"degree2","index_id":"SHARD_G9_UNIQUE9","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":null,"optimizer_job":false,"training_path":"b8_degree2","target_kind":"quadratic_b8","shared_physical_job":true},
+      {"condition_id":"explicit_xy_mlp","index_id":"SHARD_G9_UNIQUE9","query_ids":["Q_DENSE41_CANONICAL"],"stream_kind":null,"optimizer_job":true,"training_path":"b8_explicit_xy_mlp","target_kind":"quadratic_b8"},
+      {"condition_id":"cnn","index_id":"IDX_G9_BLOB_A8","query_ids":["Q_B8_CANONICAL_FULLBOX","Q_B8_HELDOUT_FULLBOX"],"stream_kind":"common","population":72,"optimizer_job":true,"normalization":"gn","training_path":"common","target_kind":"quadratic_b8"}
+    ]
+  }
+}

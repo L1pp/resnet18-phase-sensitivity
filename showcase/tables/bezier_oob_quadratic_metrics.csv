@@ -1,0 +1,2 @@
+profile,split,count,mae_px,rmse_px,endpoint_mae_px,interior_mae_px,best_checkpoint_epoch,best_checkpoint_val_mae_px,mae_px_inframe,count_inframe,mae_px_oob,count_oob
+quadratic,test,1000,1.796352505683899,3.731602430343628,0.9043476581573486,3.58036208152771,100,1.7421635389328003,1.4281634092330933,333,1.9801709651947021,667

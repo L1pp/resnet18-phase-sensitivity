@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "protocol_id": "position_sources_v1",
+  "task": "absolute_position_source_decomposition",
+  "status": "local_preparation_only",
+  "seeds": [20260823, 20260824, 20260825],
+  "seed_records": [
+    {"seed": 20260823, "data_seed": 20260823, "init_seed": 28260823, "sampler_seed": 20260823},
+    {"seed": 20260824, "data_seed": 20260824, "init_seed": 28260824, "sampler_seed": 20260824},
+    {"seed": 20260825, "data_seed": 20260825, "init_seed": 28260825, "sampler_seed": 20260825}
+  ],
+  "coordinate": {
+    "space": "pixel",
+    "model_output": "normalized_by_image_size",
+    "axis_order": "x_y",
+    "torus_target": "periodic_sin_cos_xy"
+  },
+  "normalization": {
+    "name": "groupnorm",
+    "groups": 32,
+    "batch_statistics": false
+  },
+  "renderer": {
+    "primary_image_size": 1024,
+    "primary_position_box_px": {"low": 448.0, "high": 575.0, "inclusive": true},
+    "primary_domain": {
+      "axis_values": "all_integers_inclusive",
+      "count": 16384,
+      "quotient_definition": "q=floor((p-448)/32)",
+      "residue_definition": "r=(p-448) mod 32"
+    },
+    "dense_split": {
+      "method": "quotient_cell_stratified_sha256",
+      "train_fraction": 0.8,
+      "hash_seed": 20260824,
+      "coverage_requirements": ["all_quotient_cells_each_split", "all_x_residues_each_split", "all_y_residues_each_split"]
+    },
+    "grid_order": "x_major_y_minor",
+    "dtype": "uint8",
+    "channels": 1,
+    "sigma_px": 6.0,
+    "supersample": 1,
+    "primitives": ["blob", "triangle"],
+    "triangle_definition": "filled_triangle_vertices=(-12,-8),(12,-6),(0,14), centroid=(0,0)",
+    "torus_image_size": 256,
+    "torus_period_px": 256,
+    "torus_domain": "all_integer_points_inclusive_0_to_period_minus_1"
+  },
+  "model": {
+    "family": "resnet18_gap_linear",
+    "blocks": [2, 2, 2, 2],
+    "output_dim": 2,
+    "torus_output_dim": 4,
+    "base_channels": [64, 128, 256, 512],
+    "spatial_convolution_padding": {
+      "zero": "zeros",
+      "reflection": "reflect",
+      "circular": "circular"
+    },
+    "valid_core": {
+      "padding_source": "standard_zero_resnet18",
+      "selection": "all_layer4_cells_with_complete_input_receptive_field",
+      "pool": "gap_over_selected_cells"
+    },
+    "true_valid": {
+      "all_spatial_padding": 0,
+      "projection": "3x3_valid_then_symmetric_center_crop"
+    },
+    "anti_alias": {
+      "filter": "outer([1,2,1],[1,2,1])/16",
+      "padding": "valid",
+      "placement": "after_each_stride2_stage"
+    }
+  },
+  "reference_only": {
+    "variant": "zero_s32_bn_reference",
+    "base_variant": "zero_s32",
+    "normalization": "batchnorm2d",
+    "primary": false,
+    "status": "reference_only",
+    "seeds": [20260823, 20260824, 20260825],
+    "steps": 4000,
+    "effective_batch_size": 16
+  },
+  "families": {
+    "padding": {
+      "variants": ["zero_s32", "reflection_s32", "circular_s32", "valid_core_s32", "true_valid_s32"],
+      "input_size": 1024,
+      "position_box": [448.0, 575.0]
+    },
+    "stride": {
+      "variants": ["valid_core_s32", "valid_core_aa32", "valid_core_s1"],
+      "input_size": 1024,
+      "position_box": [448.0, 575.0]
+    },
+    "torus": {
+      "variants": ["torus_s32", "torus_s1"],
+      "input_size": 256,
+      "position_box": [0.0, 256.0]
+    }
+  },
+  "training": {
+    "objective": "mean_squared_error",
+    "optimizer": "AdamW",
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "steps": 4000,
+    "batch_size": 16,
+    "effective_batch_size": 16,
+    "dtype": "float32",
+    "amp": false,
+    "loss": {"mse_weight": 1.0, "l1_weight": 0.25},
+    "scheduler": {"name": "CosineAnnealingLR", "eta_min": 0.00001},
+    "formal_requires_explicit_flag": true
+  },
+  "checkpoint": {
+    "schema_version": 2,
+    "periodic_interval_optimizer_steps": 500,
+    "identity_fields": [
+      "protocol_hash",
+      "cache_manifest_sha256",
+      "family",
+      "primitive",
+      "variant",
+      "seed",
+      "comparison_block_id",
+      "run_id",
+      "effective_batch_size",
+      "microbatch",
+      "model_stack",
+      "normalization",
+      "reference_only",
+      "device_backend",
+      "runtime_type",
+      "torch_version",
+      "cuda_version",
+      "hip_version"
+    ],
+    "rng_fields": {
+      "python": "python",
+      "numpy": "numpy",
+      "torch_cpu": "torch_cpu",
+      "torch_cuda": "torch_cuda",
+      "sampler": "sampler"
+    },
+    "gpu_rng_required": true,
+    "cpu_gpu_resume_isolation": true
+  },
+  "evaluation": {
+    "primary_domain": "fixed_protocol_position_box",
+    "metrics": [
+      "raw_mae_px",
+      "axis_mae_px",
+      "shift_collision_1px_32px_64px",
+      "modulo32_mae_px",
+      "stride_cell_accuracy",
+      "local_jacobian_slope",
+      "monotonicity"
+    ],
+    "prediction_commit_before_label_read": true,
+    "torus_decode": "atan2(sin,cos) per x/y axis",
+    "gap_feature": {
+      "field": "pre_fc_gap",
+      "source": "model.forward_features",
+      "layer": "global_average_pool_before_fc",
+      "feature_dim": 512,
+      "dtype": "float32",
+      "head_excluded": true,
+      "probe": {
+        "method": "ridge",
+        "alpha": 0.000001,
+        "fit_split": "train",
+        "eval_split": "test",
+        "fit_intercept": true,
+        "r2_definition": "1-SSE/SST on heldout eval targets only",
+        "phase_target": "r=(p-448) mod 32 in pixel units, axis_order=x_y",
+        "quotient_target": "q=floor((p-448)/32) in cell units, axis_order=x_y",
+        "primary_domain_only": true
+      },
+      "shift_distances_px": [1, 32, 64],
+      "cosine_distance": "1-cosine_similarity; zero-norm pairs report null"
+    }
+  },
+  "gates": {
+    "finite_predictions": true,
+    "support_mae_max_px": 2.0,
+    "formal_result_requires_three_seeds": true,
+    "no_posthoc_domain_change": true,
+    "explanation": {
+      "global_improvement_min_px": 2.0,
+      "quotient_r2_min": 0.1,
+      "phase_only_phase_r2_min": 0.5,
+      "phase_only_quotient_r2_max": 0.05,
+      "collision_max_px": 1.0,
+      "null_improvement_max_px": 1.0,
+      "null_r2_max": 0.05,
+      "otherwise": "inconclusive"
+    }
+  },
+  "safety": {
+    "remote_access": false,
+    "upload": false,
+    "dependency_mutation": false,
+    "formal_training_default": false,
+    "reviewer_output_subdir": "independent_review_v1"
+  }
+}
