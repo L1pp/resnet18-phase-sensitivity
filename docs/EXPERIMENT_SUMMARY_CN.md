@@ -91,7 +91,7 @@
 
 | 实验族 | 时间/阶段 | 任务维度 | 主要变化 | 主要证据入口 |
 |---|---|---:|---|---|
-| stride / antialias / no-GAP | 早期 | 2D | 下采样与 GAP | <code>results/main</code>、<code>results/baseline_60ep</code> |
+| stride / antialias / no-GAP | 早期 | 2D | 下采样与 GAP | <code>showcase/legacy_phase_sensitivity/main</code>、<code>showcase/legacy_phase_sensitivity/baseline_60ep</code> |
 | Bézier inverse / minimal / OOB | 早期 | 8D/6D | 控制点反演、曲线阶数与出画布 | <code>results/bezier_inverse</code>、<code>results/quadratic_bezier_minimal</code>、<code>results/bezier_oob</code> |
 | Phase 1–1.8 | 2026-08-10 起 | 6D | 64×64 因子、GAP 子空间、跨 split 探针 | <code>results/phase1_gap_rep</code> |
 | Phase 2 | discovery/recovery | 6D | 位置密度、架构、padding、内容、层表示 | <code>results/phase2_overnight_discovery</code> |
@@ -123,7 +123,7 @@
 | antialias | 11.177 M | 0.359 | 0.434 | 0.133 | 0 | 0.070 |
 | no-GAP | 17.600 M | 0.566 | 0.668 | 0.232 | 0 | 0.016 |
 
-证据：<code>results/main/tables/model_comparison.csv</code>。参数量、下采样和聚合方式同时变化的项目不用于单因素因果归因。
+证据：<code>showcase/legacy_phase_sensitivity/main/tables/model_comparison.csv</code>。参数量、下采样和聚合方式同时变化的项目不用于单因素因果归因。
 
 ### 3.2 baseline 延长训练
 
@@ -137,7 +137,7 @@
 | epoch 60 | 0.261 | 0.404 | 0.041 |
 | best 字段对应 checkpoint | 0.200 | 0.408 | 0.068 |
 
-证据：<code>results/baseline_60ep/tables/dense_summary.csv</code>。20 epoch 表与 60 epoch 表不是同一训练预算。
+证据：<code>showcase/legacy_phase_sensitivity/baseline_60ep/tables/dense_summary.csv</code>。20 epoch 表与 60 epoch 表不是同一训练预算。
 
 ## 4. Bézier 反演
 
@@ -1336,7 +1336,7 @@ A10 与 AMD 使用不同输出维度、不同内容/数据、不同 θ0、不同
 | functional drift 协议 | <code>FUNCTIONAL_DRIFT_PROTOCOL.md</code> |
 | constraint removal 协议 | <code>CONSTRAINT_REMOVAL_PROTOCOL.md</code> |
 | SGD rescue 协议 | <code>SGD_ANCHOR_RESCUE_PROTOCOL.md</code> |
-| stride | <code>results/main/tables</code>、<code>results/baseline_60ep/tables</code> |
+| stride | <code>showcase/legacy_phase_sensitivity/main</code>、<code>showcase/legacy_phase_sensitivity/baseline_60ep</code> |
 | Bézier | <code>results/bezier_inverse</code>、<code>results/quadratic_bezier_minimal</code>、<code>results/bezier_oob</code> |
 | Phase 1 | <code>results/phase1_gap_rep</code>（含 <code>phase1_8_unseen_t</code>） |
 | Phase 2 | <code>results/phase2_overnight_discovery</code>（含 <code>recovery</code>） |

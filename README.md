@@ -54,7 +54,7 @@ showcase/                 selected figures and compact result tables
 - research protocols and small configuration files;
 - factual research summaries and evidence notes;
 - selected figures and aggregate tables;
-- the lightweight results that were already public in the original repository.
+- a compact subset of the lightweight results already public in the original repository.
 
 ## What is intentionally omitted
 
