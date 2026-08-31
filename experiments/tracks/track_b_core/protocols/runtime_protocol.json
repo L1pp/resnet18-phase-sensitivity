@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "release_id": "function_selection_v1_trackb_unified_r1_20260824",
+  "status": "MILESTONE_3_FORMAL_RELEASE_AWAITING_TWO_LAYER_REVIEW",
+  "formal_training_authorized": true,
+  "formal_execution": {
+    "default_root": "formal_execution_20260824",
+    "gpu_workers_max": 2,
+    "cpu_only_workers_max": 2,
+    "reviewer_workers": 4,
+    "controller_processes": 1,
+    "total_active_processes_max": 12,
+    "numeric_threads_per_child": 1,
+    "cpu_only_training_paths": ["b8_degree2", "b8_explicit_xy_mlp"],
+    "gpu_queue_includes": ["b6_ridge"],
+    "hardware_or_process_retry_max": 1,
+    "science_review_failure_action": "stop_immediately"
+  },
+  "scientific_change_notes": [
+    {
+      "id": "APPEARANCE_GENERATOR_R1",
+      "status": "PASSED_STAGE_SCIENTIFIC_REVIEW",
+      "change": "The unified root freezes a SeedSequence/PCG64 appearance-parameter generator instead of the rejected candidate helper that derived parameters from a cryptographic digest.",
+      "variable_definition_preserved": "appearance remains deterministic, independent of position, balanced over every support coordinate, uses the frozen [4,9] sigma pool, and uses the frozen train/heldout seed namespaces",
+      "review_result": "PASS provided renderer namespace is fixed and independent of family, condition, run seed, and call order; frozen IDs, appearance seeds, sigma pool, and train/heldout disjointness remain unchanged."
+    }
+  ],
+  "scope": {
+    "included_families": ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"],
+    "excluded": ["Track A", "A10", "B0.1"],
+    "local_history_only": ["B0.2", "B0.3", "B0.4"]
+  },
+  "discovery_seeds": [20260816, 20260817, 20260818],
+  "data": {
+    "image_size": 224,
+    "source_channels": 1,
+    "model_channels": 3,
+    "preprocess": "uint8_to_float32_divide_255_once_then_repeat_identical_channel_three_times",
+    "augmentation": false,
+    "safe_box_px": [59.0, 164.0],
+    "coordinate_scale": 223.0,
+    "coordinate_order": "x_outer_y_inner",
+    "layouts": {"corners4": 2, "grid4x4": 4, "grid8x8": 8, "g64": 8, "g9": 3},
+    "appearance": {
+      "train_seed": 20260830,
+      "heldout_seed": 20260831,
+      "sigma_pool": [4.0, 9.0],
+      "generator": "numpy_SeedSequence_[appearance_seed,appearance_id,renderer_namespace,1]_PCG64",
+      "angle_range_radians": [0.0, 3.141592653589793],
+      "aspect_range": [0.55, 1.45],
+      "renderer_namespaces": {"blob": 11, "blob_sigma6": 12, "line_fixed": 13, "scalene_triangle": 14}
+    },
+    "renderers": {
+      "blob": "anisotropic_gaussian_with_sigma_from_frozen_pool",
+      "blob_sigma6": "anisotropic_gaussian_with_base_sigma_6",
+      "line_fixed": "distance_to_21px_segment_gaussian_profile_width_scale_1.5_angle_30deg",
+      "scalene_triangle": {"vertices_local_xy": [[-8.0, 6.0], [10.0, 5.0], [-2.0, -10.0]], "rotation": "none"}
+    }
+  },
+  "targets": {
+    "identity": "xy_px / 223.0",
+    "quadratic_b8": {
+      "basis_order": ["1", "x", "y", "x2", "xy", "y2"],
+      "coefficients": [[0.0, 0.70, 0.08, 0.06, -0.05, 0.04], [0.0, -0.06, 0.72, -0.04, 0.06, 0.05]],
+      "input": "xy_px / 223.0"
+    }
+  },
+  "model": {
+    "architecture": "torchvision_resnet18_weights_none_gap_linear_512_to_2",
+    "normalization_default": "gn",
+    "groupnorm_groups": 32,
+    "precision": "float32",
+    "amp": false,
+    "initialization_rule": "seed_python_numpy_torch_with_run_seed_before_model_construction"
+  },
+  "training": {
+    "common": {
+      "steps": 3000,
+      "batch_occurrences": 64,
+      "sampling": "with_replacement_from_fixed_stream",
+      "optimizer": "AdamW",
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "betas": [0.9, 0.999],
+      "eps": 1e-8,
+      "loss": "mean_mse_plus_0.25_mean_l1",
+      "scheduler": "cosine_annealing_advanced_after_optimizer",
+      "eta_min": 0.00001
+    },
+    "b4_causal": {
+      "steps": 20000,
+      "batch_occurrences": 64,
+      "loss": "pure_mean_mse",
+      "weight_decay": 0.0,
+      "base_lr": 0.001,
+      "warmup_steps": 500,
+      "warmup_update_lr": "base_lr * update_step / 500",
+      "cosine_updates": "for step s in 501..20000 use progress=(s-500)/(20000-500), so step_501 is just below base_lr and step_20000 equals eta_min",
+      "eta_min": 0.00001,
+      "adamw": {"betas": [0.9, 0.999], "eps": 1e-8},
+      "sgd": {"momentum": 0.0}
+    },
+    "b7": {
+      "pair_population": 112,
+      "pair_occurrences": 64,
+      "draw_order": "for_each_step_image_ids_64_then_pair_ids_64_from_same_PCG64_state",
+      "endpoint_order": "all_64_left_then_all_64_right",
+      "dense_absolute_loss": "pure_mean_mse_over_128_endpoint_occurrences",
+      "relative_loss": "pair_mean_mse_plus_anchor_mean_mse_weights_1_to_1",
+      "context_loss": "pure_mean_mse_over_64_common_stream_occurrences"
+    },
+    "b8_mlp": {
+      "device": "cpu",
+      "dtype": "float32",
+      "architecture": ["Linear(2,64)", "ReLU", "Linear(64,64)", "ReLU", "Linear(64,2)"],
+      "rows": 9,
+      "full_batch": true,
+      "shuffle": false,
+      "steps": 3000,
+      "optimizer": "AdamW",
+      "lr": 0.001,
+      "weight_decay": 0.0001,
+      "betas": [0.9, 0.999],
+      "eps": 1e-8,
+      "loss": "mean_mse_plus_0.25_mean_l1",
+      "scheduler": "none",
+      "numeric_threads": 1
+    }
+  },
+  "evaluation": {
+    "canonical_query": {"grid": 41, "rows": 1681, "range_px": [59.0, 164.0]},
+    "primary_metric": "mean_abs_error_px_over_all_rows_and_both_coordinates",
+    "support_gate_anchor_mae_px_lte": 0.25,
+    "support_failure_action": "retain_and_review_but_exclude_from_off_support_contrast",
+    "store_raw_prediction_and_truth_fields": true
+  },
+  "preregistered_contrasts": {
+    "direction": "condition_minus_reference; lower primary error is better",
+    "support_rule": "off_support contrasts include only seed records whose reviewer recomputed support gate passes; failed support records remain visible and are not imputed",
+    "B1": {"reference": "gn", "conditions": ["bn", "frozen_bn"]},
+    "B2": {"reference": "A1", "conditions": ["A8", "A64"]},
+    "B3": {"reference": "4x16", "conditions": ["16x4", "64x1"]},
+    "B4": {
+      "paired_primary": ["causal_adamw", "causal_sgd"],
+      "contrast_endpoints": ["matched_gate_when_available", "step_20000"],
+      "required_report_only_point": "step_3000",
+      "reference_adamw_role": "context_only_not_part_of_the_paired_causal_optimizer_contrast"
+    },
+    "B5": {"reference": "blob_sigma6", "conditions": ["line_fixed", "scalene_triangle"]},
+    "B6": {"reference": "ridge", "conditions": ["head_only", "lp_ft", "layer4", "full"], "upstream": "g64_upstream"},
+    "B7": {
+      "reference": "dense_absolute",
+      "conditions": ["dense_relative_4_neighbor_plus_1_anchor", "dense_relative_4_neighbor_plus_4_corners"],
+      "context_only": "corners4_absolute_context"
+    },
+    "B8": {"reference": "degree2", "conditions": ["explicit_xy_mlp", "cnn"]},
+    "promotion_rule": "for each preregistered contrast endpoint separately: all three eligible seed deltas have the same sign and absolute value at least 2 px, or all three eligible absolute deltas are at most 1 px; otherwise the exploratory result is inconclusive; no endpoint is chosen after results",
+    "aggregate": "preserve every reviewer-approved per-seed value, report missing/failed/excluded explicitly, and never synthesize closure"
+  },
+  "family_specific": {
+    "B1": {"frozen_bn_calibration_row_ids": "tile([0,1,2,3],64)", "calibration_rows": 256, "calibration_forwards": 1},
+    "B2": {"train_ids": {"A1": [0], "A8": [0,1,2,3,4,5,6,7], "A64": "0..63"}, "heldout_ids": {"A1": [1,2,3,4], "A8": [8,9,10,11], "A64": [64,65,66,67]}},
+    "B3": {"unique_images_per_condition": 64},
+    "B4": {"required_snapshots": ["first_gate_when_reached", "step_3000", "step_20000"]},
+    "B5": {"only_treatment": "renderer"},
+    "B6": {"lp_end_step": 500, "first_full_step": 501, "ridge_multipliers": [0.000001, 0.0001, 0.01], "ridge_primary_multiplier": 0.0001, "ridge_rcond": 0.000001},
+    "B7": {"anchors": {"dense_relative_4_neighbor_plus_1_anchor": [0], "dense_relative_4_neighbor_plus_4_corners": [0,7,56,63]}},
+    "B8": {"cnn_train_appearance_ids": [0,1,2,3,4,5,6,7], "cnn_heldout_appearance_ids": [8,9,10,11]}
+  },
+  "prepared_inputs": {
+    "expected_counts": {"indices_or_shards": 12, "queries": 9, "fixed_streams": 21},
+    "index_specs": [
+      {"id":"IDX_CORNERS4_BLOB_A1","layout":"corners4","renderer":"blob","appearance_count":1,"role":"common_corners4"},
+      {"id":"IDX_CORNERS4_BLOB_A8","layout":"corners4","renderer":"blob","appearance_count":8,"role":"B2_A8"},
+      {"id":"IDX_CORNERS4_BLOB_A64","layout":"corners4","renderer":"blob","appearance_count":64,"role":"B2_A64"},
+      {"id":"IDX_CORNERS4_BLOB_A16","layout":"corners4","renderer":"blob","appearance_count":16,"role":"B3_4x16"},
+      {"id":"IDX_GRID4X4_BLOB_A4","layout":"grid4x4","renderer":"blob","appearance_count":4,"role":"B3_16x4"},
+      {"id":"IDX_GRID8X8_BLOB_A1","layout":"grid8x8","renderer":"blob","appearance_count":1,"role":"B3_64x1_and_B7_dense","include_b7_pair_graph":true},
+      {"id":"IDX_CORNERS4_BLOB_SIGMA6_A1","layout":"corners4","renderer":"blob_sigma6","appearance_count":1,"role":"B5_blob_sigma6"},
+      {"id":"IDX_CORNERS4_LINE_FIXED_A1","layout":"corners4","renderer":"line_fixed","appearance_count":1,"role":"B5_line"},
+      {"id":"IDX_CORNERS4_SCALENE_TRIANGLE_A1","layout":"corners4","renderer":"scalene_triangle","appearance_count":1,"role":"B5_triangle"},
+      {"id":"IDX_G64_BLOB_A1","layout":"g64","renderer":"blob","appearance_count":1,"role":"B6_upstream"},
+      {"id":"IDX_G9_BLOB_A8","layout":"g9","renderer":"blob","appearance_count":8,"role":"B8_cnn","target_kind":"quadratic_b8"},
+      {"id":"SHARD_G9_UNIQUE9","layout":"g9","renderer":null,"appearance_count":null,"role":"B8_coordinate_only","target_kind":"quadratic_b8"}
+    ],
+    "query_specs": [
+      {"id":"Q_DENSE41_CANONICAL","layout":"dense41","appearance_ids":null,"appearance_seed":null,"renderer":null,"target_kind":null,"role":"shared_coordinate_only_fullbox; evaluator resolves target_kind from the cell and renderer from the cell index"},
+      {"id":"Q_B2_A1_HELDOUT_FULLBOX","layout":"dense41","appearance_ids":[1,2,3,4],"appearance_seed":20260831,"renderer":"blob","target_kind":"identity","role":"B2_A1_heldout_fullbox"},
+      {"id":"Q_B2_A8_HELDOUT_FULLBOX","layout":"dense41","appearance_ids":[8,9,10,11],"appearance_seed":20260831,"renderer":"blob","target_kind":"identity","role":"B2_A8_heldout_fullbox"},
+      {"id":"Q_B2_A64_HELDOUT_FULLBOX","layout":"dense41","appearance_ids":[64,65,66,67],"appearance_seed":20260831,"renderer":"blob","target_kind":"identity","role":"B2_A64_heldout_fullbox"},
+      {"id":"Q_B7_GRID8X8_HELDOUT_SUPPORT","layout":"grid8x8","appearance_ids":[1,2,3,4],"appearance_seed":20260831,"renderer":"blob","target_kind":"identity","role":"B7_dense_heldout_support"},
+      {"id":"Q_B7_HELDOUT_FULLBOX_SUPPLEMENTARY","layout":"dense41","appearance_ids":[1,2,3,4],"appearance_seed":20260831,"renderer":"blob","target_kind":"identity","role":"B7_heldout_fullbox_supplementary"},
+      {"id":"Q_B7_CORNERS4_HELDOUT_SUPPORT","layout":"corners4","appearance_ids":[1,2,3,4],"appearance_seed":20260831,"renderer":"blob","target_kind":"identity","role":"B7_context_heldout_support"},
+      {"id":"Q_B8_CANONICAL_FULLBOX","layout":"dense41","appearance_ids":[0],"appearance_seed":20260830,"renderer":"blob","target_kind":"quadratic_b8","role":"B8_canonical_fullbox"},
+      {"id":"Q_B8_HELDOUT_FULLBOX","layout":"dense41","appearance_ids":[8,9,10,11],"appearance_seed":20260831,"renderer":"blob","target_kind":"quadratic_b8","role":"B8_heldout_fullbox"}
+    ],
+    "stream_groups": [
+      {"kind":"common","population":4,"steps":3000,"width":64},
+      {"kind":"common","population":32,"steps":3000,"width":64},
+      {"kind":"common","population":64,"steps":3000,"width":64},
+      {"kind":"common","population":72,"steps":3000,"width":64},
+      {"kind":"common","population":256,"steps":3000,"width":64},
+      {"kind":"b4_causal","population":4,"steps":20000,"width":64},
+      {"kind":"b7_double_draw","image_population":64,"pair_population":112,"steps":3000,"width":64}
+    ],
+    "sampler_seed_rule": "run_seed_plus_17",
+    "rng": "numpy_default_rng_PCG64"
+  }
+}
